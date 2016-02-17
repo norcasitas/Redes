@@ -69,6 +69,7 @@ public class TelnetPeerServer extends Thread {
             while (allow) {
                 String strCommand, strAmount;
                 strCommand = din.readUTF().toLowerCase();
+                UDPPeerServer.broadcast();
                 switch (strCommand) {
                     case "reserve":
                         strAmount = din.readUTF();

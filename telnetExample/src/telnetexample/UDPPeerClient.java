@@ -9,6 +9,10 @@ package telnetexample;
  *
  * @author nico
  */
-public class UDPPeerClient {
+public class UDPPeerClient extends Thread {
+    private int stamp;
     
+    private void broadcastUDP(){
+
+    }
 }

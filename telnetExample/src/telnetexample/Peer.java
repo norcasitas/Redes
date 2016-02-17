@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -21,11 +22,13 @@ import java.net.UnknownHostException;
  * @author nico
  */
 public class Peer {
-    
+    static InetAddress[] ips = new InetAddress[1];
     private Vehicle vehicle;
 
-    public Peer() {
+    public Peer() throws UnknownHostException {
         vehicle=new Vehicle();
+        ips[0] = InetAddress.getByName("192.168.0.16");
+
     }
 
     /**
@@ -40,17 +43,10 @@ public class Peer {
     public void sendDataUDP(InetAddress ip, int port) throws SocketException, UnknownHostException, IOException {
         BufferedReader inFromUser= new BufferedReader(new InputStreamReader(System.in));
         DatagramSocket clientSocket = new DatagramSocket();
-        byte[] sendData = new byte[1024];
-        byte[] receiveData = new byte[1024];
         String sentence = inFromUser.readLine();
-        sendData = sentence.getBytes();
+        byte[] sendData = sentence.getBytes();
         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, port);
-        clientSocket.setSoTimeout(3000);
         clientSocket.send(sendPacket);
-        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-        clientSocket.receive(receivePacket);
-        String modifiedSentence = new String(receivePacket.getData());
-        System.out.println("FROM SERVER:" + modifiedSentence);
         clientSocket.close();
     }
 
@@ -58,7 +54,8 @@ public class Peer {
         Peer peer = new Peer();
         
         new UDPPeerServer().start(); //empiezo a escuchar en UDP puerto 9876
-        InetAddress IPAddress = InetAddress.getByName("localhost");
+        InetAddress IPAddress = InetAddress.getByName("192.168.0.16");
+        
         peer.sendDataUDP(IPAddress, 9876);
         peer.runTelnetServer();
 

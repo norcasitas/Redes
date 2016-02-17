@@ -23,18 +23,6 @@ import java.util.logging.Logger;
  */
 public class UDPServer {
 
-    public static void main(String args[]) throws Exception {
-        DatagramSocket serverSocket = new DatagramSocket(9876);
-        byte[] receiveData = new byte[1024];
-        byte[] sendData = new byte[1024];
-        while (true) {            
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            serverSocket.receive(receivePacket);
-            String sentence = new String(receivePacket.getData());
-            System.out.println("RECEIVED: " + sentence);
-            sendData(receivePacket.getSocketAddress());
-        }
-    }
 
     static void sendData(SocketAddress sckAdd) throws SocketException, UnknownHostException, IOException {
         BufferedReader inFromUser
@@ -46,10 +34,6 @@ public class UDPServer {
         sendData = sentence.getBytes();
         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,sckAdd);
         clientSocket.send(sendPacket);
-        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-        clientSocket.receive(receivePacket);
-        String modifiedSentence = new String(receivePacket.getData());
-        System.out.println("FROM SERVER:" + modifiedSentence);
         clientSocket.close();
     }
     
