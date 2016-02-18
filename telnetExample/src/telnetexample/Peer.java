@@ -5,6 +5,8 @@
  */
 package telnetexample;
 
+import static telnetexample.MyValues.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -17,17 +19,15 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-/**
- *
- * @author nico
- */
+
+
 public class Peer {
     static InetAddress[] ips = new InetAddress[1];
     private Vehicle vehicle;
 
     public Peer() throws UnknownHostException {
         vehicle=new Vehicle();
-        ips[0] = InetAddress.getByName("192.168.0.16");
+        ips[0] = InetAddress.getByName(IPJOAKO);
 
     }
 
@@ -54,7 +54,7 @@ public class Peer {
         Peer peer = new Peer();
         
         new UDPPeerServer().start(); //empiezo a escuchar en UDP puerto 9876
-        InetAddress IPAddress = InetAddress.getByName("192.168.0.16");
+        InetAddress IPAddress = InetAddress.getByName(IPJOAKO);
         
         peer.sendDataUDP(IPAddress, 9876);
         peer.runTelnetServer();

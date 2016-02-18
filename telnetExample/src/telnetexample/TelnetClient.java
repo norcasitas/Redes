@@ -10,15 +10,13 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import static telnetexample.MyValues.*;
 
-/**
- *
- * @author nico
- */
+      
 public class TelnetClient {
 
     public static void main(String args[]) throws Exception {
-        Socket soc = new Socket("localhost", 5217);
+        Socket soc = new Socket("localhost", TELNETCLIENTPORT);
         String loginName;
         String password;
         String command;

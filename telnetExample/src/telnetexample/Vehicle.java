@@ -5,10 +5,7 @@
  */
 package telnetexample;
 
-/**
- *
- * @author nico
- */
+
 public class Vehicle {
 
     private static int reserved;

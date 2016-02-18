@@ -14,10 +14,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-/**
- *
- * @author nico
- */
+
 public class UDPClient {
 
     static void sendData(InetAddress ip, int port) throws SocketException, UnknownHostException, IOException {

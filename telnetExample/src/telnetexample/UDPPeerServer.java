@@ -11,14 +11,12 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author nico
- */
+
 public class UDPPeerServer extends Thread {
 
     private DatagramSocket serverSocket;
@@ -35,7 +33,7 @@ public class UDPPeerServer extends Thread {
     public static void broadcast() throws UnknownHostException, SocketException, IOException {
         DatagramSocket clientSocket = new DatagramSocket();
         String sentence = "Quiero usar el server" + InetAddress.getByName("localhost").toString();
-        sendData= sentence.getBytes();
+        sendData = sentence.getBytes();
         for (InetAddress ip : Peer.ips) {
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, 9876);
             clientSocket.send(sendPacket);
@@ -52,12 +50,35 @@ public class UDPPeerServer extends Thread {
                 DatagramSocket clientSocket = new DatagramSocket();
                 serverSocket.receive(receivePacket);
                 String sentence = new String(receivePacket.getData());
+                byte[] data = receivePacket.getData();
+                
                 System.out.println("RECEIVED in thread udppeerserver: " + sentence);
-                if(receivePacket.getData()!=("ACK".getBytes())){
+
+                int size = 0;
+                while (size < data.length) {
+                    if (data[size] == 0) {
+                        break;
+                    }
+                    size++;
+                }
+
+                // Specify the appropriate encoding as the last argument
+                String str = new String(data, 0, size, "UTF-8");
+                
+                if (!str.equals("ACK")) {
+                    
                     sendData = "ACK".getBytes();
-                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,receivePacket.getAddress(), 9876);
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), 9876);
                     clientSocket.send(sendPacket);
-            }
+                } else {
+                    System.out.println("DIERON IGUALES!");
+                    //ACA TENDIRA QUE CONTAR TODOS LOS ACK.
+                    // CUANDO ESTEN TODOS ENCOLARIA LA TAREA.
+                }
+                 if (!str.equals("RELEASE")) {
+                     //ACA CONTARIA TODOS LOS RELEASE
+                     // CUANDO ESTEN TODOS, DESENCOLA.
+                 }
             } catch (IOException ex) {
                 Logger.getLogger(UDPPeerServer.class.getName()).log(Level.SEVERE, null, ex);
             }
