@@ -18,18 +18,21 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.LinkedList;
 
 
 
 public class Peer {
     static InetAddress[] ips = new InetAddress[1];
     private Vehicle vehicle;
-
+    LinkedList<QueueObject> queue;
+    
     public Peer() throws UnknownHostException {
         vehicle=new Vehicle();
         ips[0] = InetAddress.getByName(IPJOAKO);
-
+        queue = new LinkedList();
     }
+    
 
     /**
      * Envia un paquete a un server

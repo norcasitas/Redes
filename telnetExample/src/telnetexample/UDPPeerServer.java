@@ -16,13 +16,13 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 public class UDPPeerServer extends Thread {
 
     private DatagramSocket serverSocket;
     private int stamp;
     private static byte[] sendData;
     private static byte[] receiveData;
+    private int receivedAck;
 
     public UDPPeerServer() throws SocketException {
         serverSocket = new DatagramSocket(9876);
@@ -51,7 +51,7 @@ public class UDPPeerServer extends Thread {
                 serverSocket.receive(receivePacket);
                 String sentence = new String(receivePacket.getData());
                 byte[] data = receivePacket.getData();
-                
+
                 System.out.println("RECEIVED in thread udppeerserver: " + sentence);
 
                 int size = 0;
@@ -64,21 +64,28 @@ public class UDPPeerServer extends Thread {
 
                 // Specify the appropriate encoding as the last argument
                 String str = new String(data, 0, size, "UTF-8");
-                
+
                 if (!str.equals("ACK")) {
-                    
-                    sendData = "ACK".getBytes();
+                    String processName = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+                    java.util.Date date = new java.util.Date();
+                    long t = date.getTime();
+                    String ds = String.valueOf(t) + " " + processName.split("@")[0];
+                    sendData = ds.getBytes();
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), 9876);
                     clientSocket.send(sendPacket);
                 } else {
                     System.out.println("DIERON IGUALES!");
+                    receivedAck++;
+                    if (receivedAck == Peer.ips.length) {
+
+                    }
                     //ACA TENDIRA QUE CONTAR TODOS LOS ACK.
                     // CUANDO ESTEN TODOS ENCOLARIA LA TAREA.
                 }
-                 if (!str.equals("RELEASE")) {
-                     //ACA CONTARIA TODOS LOS RELEASE
-                     // CUANDO ESTEN TODOS, DESENCOLA.
-                 }
+                if (!str.equals("RELEASE")) {
+                    //ACA CONTARIA TODOS LOS RELEASE
+                    // CUANDO ESTEN TODOS, DESENCOLA.
+                }
             } catch (IOException ex) {
                 Logger.getLogger(UDPPeerServer.class.getName()).log(Level.SEVERE, null, ex);
             }

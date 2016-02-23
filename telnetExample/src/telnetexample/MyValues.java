@@ -10,7 +10,12 @@ package telnetexample;
  * @author jjaimez
  */
 public final class MyValues {
-    public static final String IPJOAKO = "192.168.0.16";
+    public static final String IPJOAKO = "192.168.0.14";
     public static final int TELNETCLIENTPORT = 5217;
-    
+    public static final int MSGAVAILABLE = 1;
+    public static final int MSGRESERVE = 2;
+    public static final int MSGCANCEL = 3;
+    public static final int MSGACK = 4;
+    public static final int MSGENTER = 5;
+    public static final int MSGRELEASE = 6;
 }
