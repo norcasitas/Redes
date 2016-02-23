@@ -11,8 +11,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,7 +59,7 @@ public class UDPPeerServer extends Thread {
                     }
                     size++;
                 }
-
+                
                 // Specify the appropriate encoding as the last argument
                 String str = new String(data, 0, size, "UTF-8");
 
@@ -77,14 +75,11 @@ public class UDPPeerServer extends Thread {
                     System.out.println("DIERON IGUALES!");
                     receivedAck++;
                     if (receivedAck == Peer.ips.length) {
-
+                        //SI RESIVO TODOS TENGO QUE HACER UN IF PARA SABER SI SOY EL PRIMERO EN LA COLA.
                     }
-                    //ACA TENDIRA QUE CONTAR TODOS LOS ACK.
-                    // CUANDO ESTEN TODOS ENCOLARIA LA TAREA.
                 }
                 if (!str.equals("RELEASE")) {
-                    //ACA CONTARIA TODOS LOS RELEASE
-                    // CUANDO ESTEN TODOS, DESENCOLA.
+                    //CADA VEZ QUE ME LLEGA UNO TENGO QUE DESENCOLAR Y FIJARME SI ES MI TURNO.
                 }
             } catch (IOException ex) {
                 Logger.getLogger(UDPPeerServer.class.getName()).log(Level.SEVERE, null, ex);

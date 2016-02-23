@@ -5,14 +5,11 @@
  */
 package telnetexample;
 
-import com.sun.jmx.snmp.Timestamp;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
@@ -32,12 +29,10 @@ public class TelnetPeerServer extends Thread {
     private Vehicle vehicle;
     private String command;
     private int parameter;
-    private long diference;
 
     TelnetPeerServer(Socket CSoc, Vehicle vehicle) throws Exception {
         ClientSocket = CSoc; //creo el socket para el cliente
         this.vehicle = vehicle;
-        diference = 0;
         System.out.println("Client Connected ...");
         DataInputStream din = new DataInputStream(ClientSocket.getInputStream()); //preparo el socket para la entrada
         DataOutputStream dout = new DataOutputStream(ClientSocket.getOutputStream()); //preparo el socket para la salida
@@ -74,16 +69,10 @@ public class TelnetPeerServer extends Thread {
 
             while (allow) {
                 command = din.readUTF().toLowerCase();
+                 UDPPeerServer.broadcast();
                 switch (command) {
                     case "reserve":
-                        java.util.Date date = new java.util.Date();
-                        long t = date.getTime() + diference;
-                        String processName = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
-                        QueueObject qo = new QueueObject(t, Long.parseLong(processName.split("@")[0]));
-                     
-                        UDPPeerServer.broadcast();
                         parameter = Integer.valueOf(din.readUTF());
-
                         Boolean result = vehicle.reserve(parameter);
                         dout.writeUTF(result.toString());
                         break;

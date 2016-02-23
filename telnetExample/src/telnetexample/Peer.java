@@ -7,21 +7,23 @@ package telnetexample;
 
 import static telnetexample.MyValues.*;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 
 
+/*
+FALTA:
 
+IMPLEMENTAR COLA DE PRIORIDAD EN LA CLASE PEER.
+IMPLEMENTAR LA DIFERENCIA EN EL PEER Y SACARLA DEL TELNETSERVER.
+IMPLEMENTAR EL MATCH DE MENSAJE Y SUS RESPECTIVAS FUNCIONES DEPENDE EL MATCH.
+
+
+*/
 public class Peer {
     static InetAddress[] ips = new InetAddress[1];
     private Vehicle vehicle;
@@ -34,32 +36,12 @@ public class Peer {
     }
     
 
-    /**
-     * Envia un paquete a un server
-     *
-     * @param ip
-     * @param port
-     * @throws SocketException
-     * @throws UnknownHostException
-     * @throws IOException
-     */
-    public void sendDataUDP(InetAddress ip, int port) throws SocketException, UnknownHostException, IOException {
-        BufferedReader inFromUser= new BufferedReader(new InputStreamReader(System.in));
-        DatagramSocket clientSocket = new DatagramSocket();
-        String sentence = inFromUser.readLine();
-        byte[] sendData = sentence.getBytes();
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, port);
-        clientSocket.send(sendPacket);
-        clientSocket.close();
-    }
-
     public static void main(String args[]) throws Exception {
         Peer peer = new Peer();
         
         new UDPPeerServer().start(); //empiezo a escuchar en UDP puerto 9876
         InetAddress IPAddress = InetAddress.getByName(IPJOAKO);
-        
-        peer.sendDataUDP(IPAddress, 9876);
+      
         peer.runTelnetServer();
 
     }
