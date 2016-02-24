@@ -7,13 +7,28 @@ package telnetexample;
 
 
 public class QueueObject {
-    long time;
-    long pid;
+    private long time;
+   private long pid;
 
+   /**
+    * 
+    * @param time
+    * @param pid 
+    */
     public QueueObject(long time, long pid) {
         this.time = time;
         this.pid = pid;
     }
+
+    public long getTime() {
+        return time;
+    }
+
+    public long getPid() {
+        return pid;
+    }
+    
+    
 }
 
 

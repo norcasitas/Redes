@@ -18,21 +18,32 @@ import java.util.LinkedList;
 /*
 FALTA:
 
-IMPLEMENTAR COLA DE PRIORIDAD EN LA CLASE PEER.
-IMPLEMENTAR LA DIFERENCIA EN EL PEER Y SACARLA DEL TELNETSERVER.
-IMPLEMENTAR EL MATCH DE MENSAJE Y SUS RESPECTIVAS FUNCIONES DEPENDE EL MATCH.
+IMPLEMENTAR LA DIFERENCIA EN EL PEER.
+IMPLEMENTAR FUNCIONES DEPENDE EL MATCH.
 
 
 */
 public class Peer {
     static InetAddress[] ips = new InetAddress[1];
     private Vehicle vehicle;
-    LinkedList<QueueObject> queue;
+    static LinkedList<QueueObject> queue;
+    static long diference;
+    static long pid;
+    
+    static public void enqueue(QueueObject qb){
+        int i = 0;
+        while (queue.get(i).getTime() <= qb.getTime() || queue.size() < i){
+            i++;
+        }
+        queue.add(i, qb);
+    }
+    
     
     public Peer() throws UnknownHostException {
         vehicle=new Vehicle();
         ips[0] = InetAddress.getByName(IPJOAKO);
         queue = new LinkedList();
+        pid =  Long.valueOf(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
     }
     
 

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 package telnetexample;
-
+import static telnetexample.MyValues.*;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -14,6 +14,7 @@ import java.net.Socket;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 /**
  *
@@ -69,20 +70,21 @@ public class TelnetPeerServer extends Thread {
 
             while (allow) {
                 command = din.readUTF().toLowerCase();
-                 UDPPeerServer.broadcast();
+                
                 switch (command) {
                     case "reserve":
+                        UDPPeerServer.broadcast(MSGENTER);
                         parameter = Integer.valueOf(din.readUTF());
                         Boolean result = vehicle.reserve(parameter);
                         dout.writeUTF(result.toString());
                         break;
                     case "available":
-                        UDPPeerServer.broadcast();
+                        UDPPeerServer.broadcast(MSGENTER);
                         Integer available = vehicle.available();
                         dout.writeUTF(available.toString());
                         break;
                     case "cancel":
-                        UDPPeerServer.broadcast();
+                        UDPPeerServer.broadcast(MSGENTER);
                         parameter = Integer.valueOf(din.readUTF());
                         vehicle.cancel(parameter);
                         dout.writeUTF("cancelacion exitosa");

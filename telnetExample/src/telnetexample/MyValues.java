@@ -5,10 +5,7 @@
  */
 package telnetexample;
 
-/**
- *
- * @author jjaimez
- */
+
 public final class MyValues {
     public static final String IPJOAKO = "192.168.0.14";
     public static final int TELNETCLIENTPORT = 5217;
