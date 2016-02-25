@@ -27,13 +27,11 @@ public class TelnetPeerServer extends Thread {
     private DataOutputStream dout;
     private String LoginName;
     private String Password;
-    private Vehicle vehicle;
     private String command;
     private int parameter;
 
-    TelnetPeerServer(Socket CSoc, Vehicle vehicle) throws Exception {
+    TelnetPeerServer(Socket CSoc) throws Exception {
         ClientSocket = CSoc; //creo el socket para el cliente
-        this.vehicle = vehicle;
         System.out.println("Client Connected ...");
         DataInputStream din = new DataInputStream(ClientSocket.getInputStream()); //preparo el socket para la entrada
         DataOutputStream dout = new DataOutputStream(ClientSocket.getOutputStream()); //preparo el socket para la salida
@@ -73,20 +71,17 @@ public class TelnetPeerServer extends Thread {
                 
                 switch (command) {
                     case "reserve":
-                        UDPPeerServer.broadcast(MSGENTER);
                         parameter = Integer.valueOf(din.readUTF());
-                        Boolean result = vehicle.reserve(parameter);
+                        Boolean result = Peer.reserve(parameter);
                         dout.writeUTF(result.toString());
                         break;
                     case "available":
-                        UDPPeerServer.broadcast(MSGENTER);
-                        Integer available = vehicle.available();
-                        dout.writeUTF(available.toString());
+                        //Integer available = vehicle.available();
+                        //dout.writeUTF(available.toString());
                         break;
                     case "cancel":
-                        UDPPeerServer.broadcast(MSGENTER);
                         parameter = Integer.valueOf(din.readUTF());
-                        vehicle.cancel(parameter);
+                        //vehicle.cancel(parameter);
                         dout.writeUTF("cancelacion exitosa");
                         break;
                     case "quit":

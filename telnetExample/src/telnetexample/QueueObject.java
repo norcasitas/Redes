@@ -11,7 +11,7 @@ public class QueueObject {
    private long pid;
 
    /**
-    * 
+    * recibe el timestamp y el pid del proceso para identificarlo
     * @param time
     * @param pid 
     */

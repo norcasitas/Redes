@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 package telnetexample;
+
 import static telnetexample.MyValues.*;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -14,26 +15,38 @@ import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 public class UDPPeerServer extends Thread {
 
     private DatagramSocket serverSocket;
-    private int stamp;
     private static byte[] sendData;
     private static byte[] receiveData;
     private int receivedAck;
-    
-    public UDPPeerServer() throws SocketException {
+    private static int actionFromClient; //utilizado para saber si voy a reservar, cancelar, etc
+    private static int amount;
+    private static Object result; //utilizado para la sincro
+    private Peer peer;
+    public UDPPeerServer(Peer peer) throws SocketException {
         serverSocket = new DatagramSocket(9876);
-        stamp = 0;
         receiveData = new byte[20];
+        this.peer = peer;
     }
 
-    public static void broadcast(int action) throws UnknownHostException, SocketException, IOException {
+    /**
+     * Realiza un broadcast con la accion que desea realizar el peer
+     *
+     * @param action
+     * @throws UnknownHostException
+     * @throws SocketException
+     * @throws IOException
+     */
+    public static void broadcast(int action, long time, long pid) throws UnknownHostException, SocketException, IOException {
         DatagramSocket clientSocket = new DatagramSocket();
         java.util.Date date = new java.util.Date();
-        String sentence = action + " " +  String.valueOf(date.getTime() - Peer.diference) + " " + Peer.pid;
+        //preparo un string que es por ejemplo 1 12386123 pid donde representa la 
+        //accion, su tiempo, y el pid del proceso
+        String sentence = action + " " + String.valueOf(time) + " " + pid;
         sendData = sentence.getBytes();
+        //lo envio a cada proceso, no espero respuesta sincronica
         for (InetAddress ip : Peer.ips) {
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, 9876);
             clientSocket.send(sendPacket);
@@ -46,56 +59,73 @@ public class UDPPeerServer extends Thread {
     public void run() {
         while (true) {
             try {
+                //empiezo a escuchar mensajes que entren por udp
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
                 DatagramSocket clientSocket = new DatagramSocket();
                 serverSocket.receive(receivePacket);
                 String sentence = new String(receivePacket.getData());
                 byte[] data = receivePacket.getData();
-
                 System.out.println("RECEIVED in thread udppeerserver: " + sentence);
-
                 int size = 0;
-                while (size < data.length) {
+                while (size < data.length) {//obtengo el tamaño del mensaje, eliminando la basura
                     if (data[size] == 0) {
                         break;
                     }
                     size++;
                 }
-                
                 // Specify the appropriate encoding as the last argument
                 String str = new String(data, 0, size, "UTF-8");
-                
-                
-               int msg = Integer.valueOf(str.split(" ")[0]);
-               QueueObject qb = new QueueObject(Long.valueOf(str.split(" ")[1]),Long.valueOf(str.split(" ")[2]));
-               
-               if (msg != MSGACK) {
-                    //SI NO RESIVO UN ACK, PUEDO RECIVIR UN RELEASE O UN ENTER.
-                     if (msg == MSGRELEASE) {
-                        Peer.queue.remove(0);
-                        if ((Peer.queue.get(0).getPid()) == Peer.pid ){
+
+                //hago un split para obtener la accion a realizar
+                int action = Integer.valueOf(str.split(" ")[0]);
+                //encolo en la cola, un objeto que contiene el timestamp y el pid del proceso del peer que lo envio
+                long time= Long.valueOf(str.split(" ")[1]);
+                long pid =Long.valueOf(str.split(" ")[2]);
+                QueueObject qb = new QueueObject(time, pid);
+
+                if (action != MSGACK) {
+                    //SI NO REcIbO UN ACK, PUEDO RECIbIR UN RELEASE O UN ENTER.
+                    if (action == MSGRELEASE) {
+                        Peer.dequeue();
+                        if (Peer.getFirstPid() == Peer.getPid()) {
                             //ES MI TURNO TENGO QUE EJECUTAR LA ACCION (falta) Y MANDO BRODCAST
-                            
-                            broadcast(MSGRELEASE);
-                        } 
+                            switch(actionFromClient){
+                                case MyValues.MSGRESERVE:
+                                    //tengo que realizar una reserva
+                                    peer.getVehicle().reserve(amount);
+                            }
+                            Peer.dequeue();
+                            broadcast(MSGRELEASE, Peer.getMyTimeInMillis(),Peer.getPid());
+                        }
                     }
-                    if (msg == MSGENTER) {
+                    if (action == MSGENTER) {
                         //ENCOLO Y MANDO ACK
-                        Peer.queue.remove(0);
                         Peer.enqueue(qb);
-                        java.util.Date date = new java.util.Date();
-                        String ds = MSGACK + " " +  String.valueOf(date.getTime() - Peer.diference) + " " + Peer.pid;
+                        //con esto logro sincronizar, si fuera necesario, el tiempo
+                        Peer.updateTime(time);
+                        String ds = MSGACK + " " + String.valueOf(Peer.getMyTimeInMillis()) + " " + Peer.getPid();
                         sendData = ds.getBytes();
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), 9876);
-                        clientSocket.send(sendPacket);
-                    } 
+                        clientSocket.send(sendPacket); // le respondo que está todo bien
+                    }
                 } else {
                     System.out.println("DIERON IGUALES!");
                     receivedAck++;
-                    if (receivedAck == Peer.ips.length) {
-                         //ES MI TURNO TENGO QUE EJECUTAR LA ACCION (falta) Y MANDO BRODCAST
+                    if (receivedAck == Peer.ips.length) {//recibi todos los ack
+                        if (Peer.getFirstPid() == Peer.getPid()) {
+                            //y soy yo el que sigue en la cola, entonces es mi turno
                             receivedAck = 0;
-                            broadcast(MSGRELEASE);
+                            //aca estoy en la zona critica, debería hacer lo que necesito
+                                //ES MI TURNO TENGO QUE EJECUTAR LA ACCION (falta) Y MANDO BRODCAST
+                            switch(actionFromClient){
+                                case MyValues.MSGRESERVE:
+                                    //tengo que realizar una reserva
+                                    result = peer.getVehicle().reserve(amount);
+                            }
+                            Peer.dequeue();
+                            broadcast(MSGRELEASE, Peer.getMyTimeInMillis(),Peer.getPid());
+                        }
+
                     }
                 }
             } catch (IOException ex) {
@@ -104,4 +134,22 @@ public class UDPPeerServer extends Thread {
         }
     }
 
+    public static boolean reserve(int amount) throws SocketException, IOException{
+        actionFromClient = MyValues.MSGRESERVE;
+        UDPPeerServer.amount = amount;
+        long time= Peer.getMyTimeInMillis();
+        QueueObject qb = new QueueObject(time, Peer.getPid());
+        Peer.enqueue(qb);
+        //notifico a todos que quiero usar el recurso compartido
+        broadcast(MSGENTER, time, Peer.getPid());
+        //la negrada de esperar a que el valor esté listo
+        while(result==null){
+            
+        }
+        boolean ret = (boolean) result;
+        result = null;
+        return ret;
+    }
+    
+    
 }
