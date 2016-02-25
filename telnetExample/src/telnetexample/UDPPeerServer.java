@@ -25,6 +25,7 @@ public class UDPPeerServer extends Thread {
     private static int amount;
     private static Object result; //utilizado para la sincro
     private Peer peer;
+
     public UDPPeerServer(Peer peer) throws SocketException {
         serverSocket = new DatagramSocket(9876);
         receiveData = new byte[20];
@@ -79,8 +80,8 @@ public class UDPPeerServer extends Thread {
                 //hago un split para obtener la accion a realizar
                 int action = Integer.valueOf(str.split(" ")[0]);
                 //encolo en la cola, un objeto que contiene el timestamp y el pid del proceso del peer que lo envio
-                long time= Long.valueOf(str.split(" ")[1]);
-                long pid =Long.valueOf(str.split(" ")[2]);
+                long time = Long.valueOf(str.split(" ")[1]);
+                long pid = Long.valueOf(str.split(" ")[2]);
                 QueueObject qb = new QueueObject(time, pid);
 
                 if (action != MSGACK) {
@@ -89,13 +90,21 @@ public class UDPPeerServer extends Thread {
                         Peer.dequeue();
                         if (Peer.getFirstPid() == Peer.getPid()) {
                             //ES MI TURNO TENGO QUE EJECUTAR LA ACCION (falta) Y MANDO BRODCAST
-                            switch(actionFromClient){
+                            switch (actionFromClient) {
                                 case MyValues.MSGRESERVE:
                                     //tengo que realizar una reserva
                                     peer.getVehicle().reserve(amount);
+                                    break;
+                                case MyValues.MSGAVAILABLE:
+                                    //Verifico asientos disponibles
+                                    peer.getVehicle().available();
+                                    break;
+                                case MyValues.MSGCANCEL:
+                                    peer.getVehicle().cancel(amount);
+                                    break;
                             }
                             Peer.dequeue();
-                            broadcast(MSGRELEASE, Peer.getMyTimeInMillis(),Peer.getPid());
+                            broadcast(MSGRELEASE, Peer.getMyTimeInMillis(), Peer.getPid());
                         }
                     }
                     if (action == MSGENTER) {
@@ -116,14 +125,23 @@ public class UDPPeerServer extends Thread {
                             //y soy yo el que sigue en la cola, entonces es mi turno
                             receivedAck = 0;
                             //aca estoy en la zona critica, debería hacer lo que necesito
-                                //ES MI TURNO TENGO QUE EJECUTAR LA ACCION (falta) Y MANDO BRODCAST
-                            switch(actionFromClient){
+                            //ES MI TURNO TENGO QUE EJECUTAR LA ACCION (falta) Y MANDO BRODCAST
+                            switch (actionFromClient) {
                                 case MyValues.MSGRESERVE:
                                     //tengo que realizar una reserva
                                     result = peer.getVehicle().reserve(amount);
+                                    break;
+                                case MyValues.MSGAVAILABLE:
+                                    //Tengo que verificar la cantidad de asientos disponibles.
+                                    result = peer.getVehicle().available();
+                                    break;
+                                case MyValues.MSGCANCEL:
+                                    //Cancelo
+                                    result = peer.getVehicle().cancel(size);
+                                    break;
                             }
                             Peer.dequeue();
-                            broadcast(MSGRELEASE, Peer.getMyTimeInMillis(),Peer.getPid());
+                            broadcast(MSGRELEASE, Peer.getMyTimeInMillis(), Peer.getPid());
                         }
 
                     }
@@ -134,22 +152,49 @@ public class UDPPeerServer extends Thread {
         }
     }
 
-    public static boolean reserve(int amount) throws SocketException, IOException{
+    public static boolean reserve(int amount) throws SocketException, IOException {
         actionFromClient = MyValues.MSGRESERVE;
         UDPPeerServer.amount = amount;
-        long time= Peer.getMyTimeInMillis();
+        long time = Peer.getMyTimeInMillis();
         QueueObject qb = new QueueObject(time, Peer.getPid());
         Peer.enqueue(qb);
         //notifico a todos que quiero usar el recurso compartido
         broadcast(MSGENTER, time, Peer.getPid());
         //la negrada de esperar a que el valor esté listo
-        while(result==null){
-            
+        while (result == null) {
+
         }
         boolean ret = (boolean) result;
         result = null;
         return ret;
     }
-    
-    
+
+    public static int available() throws SocketException, IOException {
+        actionFromClient = MyValues.MSGAVAILABLE;
+        long time = Peer.getMyTimeInMillis();
+        QueueObject qb = new QueueObject(time, Peer.getPid());
+        Peer.enqueue(qb);
+        broadcast(MSGENTER, time, Peer.getPid());
+        while (result == null) {
+        }
+        int ret = (int) result;
+        result = null;
+        return ret;
+    }
+
+    public static boolean cancel(int amount) throws SocketException, IOException {
+        actionFromClient = MyValues.MSGCANCEL;
+        UDPPeerServer.amount = amount;
+        long time = Peer.getMyTimeInMillis();
+        QueueObject qb = new QueueObject(time, Peer.getPid());
+        Peer.enqueue(qb);
+        broadcast(MSGENTER, time, Peer.getPid());
+        while (result == null) {
+
+        }
+        boolean ret = (boolean) result;
+        result = null;
+        return ret;
+    }
+
 }

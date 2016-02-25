@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 package telnetexample;
+
 import static telnetexample.MyValues.*;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -14,7 +15,6 @@ import java.net.Socket;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 /**
  *
@@ -68,7 +68,7 @@ public class TelnetPeerServer extends Thread {
 
             while (allow) {
                 command = din.readUTF().toLowerCase();
-                
+
                 switch (command) {
                     case "reserve":
                         parameter = Integer.valueOf(din.readUTF());
@@ -76,13 +76,17 @@ public class TelnetPeerServer extends Thread {
                         dout.writeUTF(result.toString());
                         break;
                     case "available":
-                        //Integer available = vehicle.available();
-                        //dout.writeUTF(available.toString());
+                        Integer available = Peer.available();
+                        dout.writeUTF(available.toString());
                         break;
                     case "cancel":
                         parameter = Integer.valueOf(din.readUTF());
-                        //vehicle.cancel(parameter);
-                        dout.writeUTF("cancelacion exitosa");
+                        boolean cancel = Peer.cancel(parameter);
+                        if (cancel) {
+                            dout.writeUTF("Cancelaste exitosamente " + parameter + " pasajes");
+                        } else {
+                            dout.writeUTF("Error: La cantidad de asientos a cancelar tiene que ser menor a la de asientos reservados");
+                        }
                         break;
                     case "quit":
                         allow = false;

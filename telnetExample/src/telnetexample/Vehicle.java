@@ -5,7 +5,6 @@
  */
 package telnetexample;
 
-
 public class Vehicle {
 
     private static int reserved;
@@ -20,9 +19,13 @@ public class Vehicle {
         }
     }
 
-    public void cancel(int seats) {
-        reserved = +seats;
-
+    public boolean cancel(int seats) {
+        if (reserved - seats > 0) {
+            reserved = -seats;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public int available() {

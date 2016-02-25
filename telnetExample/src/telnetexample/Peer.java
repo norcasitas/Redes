@@ -65,7 +65,7 @@ public class Peer {
     }
     
     /**
-     * Retorna el identificador dle proceso
+     * Retorna el identificador del proceso
      * @return 
      */
     static public long getPid(){
@@ -99,6 +99,14 @@ public class Peer {
         return UDPPeerServer.reserve(amount);
     }
 
+    public static int available() throws IOException {
+        return UDPPeerServer.available();
+    }
+    
+    public static boolean cancel(int amount) throws IOException{
+        return UDPPeerServer.cancel(amount);
+    }
+    
     public Vehicle getVehicle() {
         return vehicle;
     }
