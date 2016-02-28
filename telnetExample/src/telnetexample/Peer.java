@@ -26,7 +26,7 @@ import java.util.LinkedList;
  */
 public class Peer {
 
-    static InetAddress[] ips = new InetAddress[1];
+    static IPports[] ips = new IPports[1];
     private static Vehicle vehicle;
     private static LinkedList<QueueObject> queue;
     private static long timeSyncronized; //utilizado para llevar la diferencia con el reloj propio
@@ -34,10 +34,28 @@ public class Peer {
 
     public Peer() throws UnknownHostException {
         vehicle = new Vehicle();
-        ips[0] = InetAddress.getByName(IPJOAKO);
+        ips[0] = IPCENTRAL1;
         queue = new LinkedList();
         pid = Long.valueOf(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
         timeSyncronized = System.currentTimeMillis(); //con esto, hago que el reloj simule empezar en 0
+    }
+    
+    /**
+     * type es el tipo de puerto que desea retornar, 1 para udp, 2 para telnet
+     * si no encuentra la ip, retorna -1
+     * @param type
+     * @param ip 
+     */
+    public static int getPortByIP(int type,InetAddress ip){
+        for (IPports ipPort: ips){
+            if(ipPort.getIp().equals(ip)){
+                if(type == 1)
+                    return ipPort.getPortUDP();
+                if(type == 2)
+                    return ipPort.getPortTelnet();
+            }
+        }
+        return -1;
     }
 
     static public void enqueue(QueueObject qb) {
@@ -73,7 +91,7 @@ public class Peer {
     }
 
     public void runTelnetServer() throws IOException, Exception {
-        ServerSocket Soc = new ServerSocket(5217);
+        ServerSocket Soc = new ServerSocket(MYIP.getPortTelnet());
         while (true) { // en este while voy recibiendo los clientes
             Socket CSoc = Soc.accept();
             TelnetPeerServer ob = new TelnetPeerServer(CSoc);
@@ -125,9 +143,6 @@ public class Peer {
     public static void main(String args[]) throws Exception {
         Peer peer = new Peer();
         new UDPPeerServer(peer).start(); //empiezo a escuchar en UDP puerto 9876
-        InetAddress IPAddress = InetAddress.getByName(IPJOAKO);
-
-      
         peer.runTelnetServer(); //pongo a correr el telnet en el puerto 5217
 
     }

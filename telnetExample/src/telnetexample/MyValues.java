@@ -5,10 +5,15 @@
  */
 package telnetexample;
 
+import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.Map;
+import javafx.util.Pair;
+
 
 public final class MyValues {
-    public static final String IPJOAKO = "192.168.0.111";
-    public static final int TELNETCLIENTPORT = 5217;
+    public static final IPports MYIP = new IPports("localhost", 9876,5217); //mantengo ip, puerto udp, puerto telnet
+    public static final IPports IPCENTRAL1 = new IPports("localhost", 9877,5218); //mantengo ip, puerto udp, puerto telnet
     public static final int MSGAVAILABLE = 1;
     public static final int MSGRESERVE = 2;
     public static final int MSGCANCEL = 3;

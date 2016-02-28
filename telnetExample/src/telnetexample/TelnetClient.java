@@ -16,7 +16,7 @@ import static telnetexample.MyValues.*;
 public class TelnetClient {
 
     public static void main(String args[]) throws Exception {
-        Socket soc = new Socket("localhost", TELNETCLIENTPORT);
+        Socket soc = new Socket(MYIP.getIp(), MYIP.getPortTelnet());
         String loginName;
         String password;
         String command;

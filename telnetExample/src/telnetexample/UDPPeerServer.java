@@ -27,7 +27,7 @@ public class UDPPeerServer extends Thread {
     private Peer peer;
 
     public UDPPeerServer(Peer peer) throws SocketException {
-        serverSocket = new DatagramSocket(9876);
+        serverSocket = new DatagramSocket(MYIP.getPortUDP());
         receiveData = new byte[20];
         this.peer = peer;
     }
@@ -48,8 +48,8 @@ public class UDPPeerServer extends Thread {
         String sentence = action + " " + String.valueOf(time) + " " + pid;
         sendData = sentence.getBytes();
         //lo envio a cada proceso, no espero respuesta sincronica
-        for (InetAddress ip : Peer.ips) {
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, 9876);
+        for (IPports ip : Peer.ips) {
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip.getIp(), Peer.getPortByIP(1, ip.getIp()));
             clientSocket.send(sendPacket);
         }
         clientSocket.close();
@@ -114,7 +114,7 @@ public class UDPPeerServer extends Thread {
                         Peer.updateTime(time);
                         String ds = MSGACK + " " + String.valueOf(Peer.getMyTimeInMillis()) + " " + Peer.getPid();
                         sendData = ds.getBytes();
-                        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), 9876);
+                        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), Peer.getPortByIP(1, receivePacket.getAddress()));
                         clientSocket.send(sendPacket); // le respondo que está todo bien
                     }
                 } else {
@@ -153,6 +153,7 @@ public class UDPPeerServer extends Thread {
     }
 
     public static boolean reserve(int amount) throws SocketException, IOException {
+        System.out.println("line 156 reserve" +amount);
         actionFromClient = MyValues.MSGRESERVE;
         UDPPeerServer.amount = amount;
         long time = Peer.getMyTimeInMillis();
