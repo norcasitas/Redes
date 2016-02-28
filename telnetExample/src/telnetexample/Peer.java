@@ -135,7 +135,7 @@ public class Peer {
     }
     
     public static int getSeats(){
-        return vehicle.available();
+        return vehicle.getReserved();
     }
     
     public void setSeats(int seats){

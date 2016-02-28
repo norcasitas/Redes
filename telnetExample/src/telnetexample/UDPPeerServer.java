@@ -48,7 +48,7 @@ public class UDPPeerServer extends Thread {
         //accion, su tiempo, y el pid del proceso
         String sentence = action + " " + String.valueOf(time) + " " + pid;
         if (MSGRELEASE == action) {
-            sentence.concat(" " + Peer.getSeats());
+            sentence+=" " + Peer.getSeats();
         }
         sendData = sentence.getBytes();
         //lo envio a cada proceso, no espero respuesta sincronica
