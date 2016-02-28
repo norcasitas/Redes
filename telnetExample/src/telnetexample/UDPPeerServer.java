@@ -25,6 +25,7 @@ public class UDPPeerServer extends Thread {
     private static int amount;
     private static Object result; //utilizado para la sincro
     private Peer peer;
+    private static Object LOCK = new Object(); // just something to lock on
 
     public UDPPeerServer(Peer peer) throws SocketException {
         serverSocket = new DatagramSocket(MYIP.getPortUDP());
@@ -83,7 +84,7 @@ public class UDPPeerServer extends Thread {
                 long time = Long.valueOf(str.split(" ")[1]);
                 long pid = Long.valueOf(str.split(" ")[2]);
                 QueueObject qb = new QueueObject(time, pid);
-
+                Peer.updateTime(time);
                 if (action != MSGACK) {
                     //SI NO REcIbO UN ACK, PUEDO RECIbIR UN RELEASE O UN ENTER.
                     if (action == MSGRELEASE) {
@@ -94,6 +95,9 @@ public class UDPPeerServer extends Thread {
                                 case MyValues.MSGRESERVE:
                                     //tengo que realizar una reserva
                                     peer.getVehicle().reserve(amount);
+                                    synchronized (LOCK) {
+                                        LOCK.notifyAll();
+                                    }
                                     break;
                                 case MyValues.MSGAVAILABLE:
                                     //Verifico asientos disponibles
@@ -111,7 +115,6 @@ public class UDPPeerServer extends Thread {
                         //ENCOLO Y MANDO ACK
                         Peer.enqueue(qb);
                         //con esto logro sincronizar, si fuera necesario, el tiempo
-                        Peer.updateTime(time);
                         String ds = MSGACK + " " + String.valueOf(Peer.getMyTimeInMillis()) + " " + Peer.getPid();
                         sendData = ds.getBytes();
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), Peer.getPortByIP(1, receivePacket.getAddress()));
@@ -130,6 +133,9 @@ public class UDPPeerServer extends Thread {
                                 case MyValues.MSGRESERVE:
                                     //tengo que realizar una reserva
                                     result = peer.getVehicle().reserve(amount);
+                                    synchronized (LOCK) {
+                                        LOCK.notifyAll();
+                                    }
                                     break;
                                 case MyValues.MSGAVAILABLE:
                                     //Tengo que verificar la cantidad de asientos disponibles.
@@ -153,7 +159,7 @@ public class UDPPeerServer extends Thread {
     }
 
     public static boolean reserve(int amount) throws SocketException, IOException {
-        System.out.println("line 156 reserve" +amount);
+        System.out.println("line 156 reserve" + amount);
         actionFromClient = MyValues.MSGRESERVE;
         UDPPeerServer.amount = amount;
         long time = Peer.getMyTimeInMillis();
@@ -163,7 +169,7 @@ public class UDPPeerServer extends Thread {
         broadcast(MSGENTER, time, Peer.getPid());
         //la negrada de esperar a que el valor esté listo
         while (result == null) {
-
+            System.out.println("basura resreve");
         }
         boolean ret = (boolean) result;
         result = null;
@@ -176,7 +182,15 @@ public class UDPPeerServer extends Thread {
         QueueObject qb = new QueueObject(time, Peer.getPid());
         Peer.enqueue(qb);
         broadcast(MSGENTER, time, Peer.getPid());
-        while (result == null) {
+        synchronized (LOCK) {
+            while (result == null) {
+                try {
+                    LOCK.wait();
+                } catch (InterruptedException e) {
+                    // treat interrupt as exit request
+                    break;
+                }
+            }
         }
         int ret = (int) result;
         result = null;

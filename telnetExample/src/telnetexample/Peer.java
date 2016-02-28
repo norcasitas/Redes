@@ -37,7 +37,7 @@ public class Peer {
         ips[0] = IPCENTRAL1;
         queue = new LinkedList();
         pid = Long.valueOf(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
-        timeSyncronized = System.currentTimeMillis(); //con esto, hago que el reloj simule empezar en 0
+        timeSyncronized = System.currentTimeMillis() - 50000; //con esto, hago que el reloj simule empezar en 0
     }
     
     /**
@@ -105,8 +105,13 @@ public class Peer {
     public static void updateTime(long millis){
         //si el tiempo que transcurrió desde la ultima sincro es menor al tiempo de entrada,
         //me sincronizo
+        long e= System.currentTimeMillis() - timeSyncronized;
+        System.out.println(e + " - "  +millis + " "+ timeSyncronized);
+
+        
         if(System.currentTimeMillis() - timeSyncronized  < millis){
-            timeSyncronized = millis;
+            timeSyncronized = System.currentTimeMillis() - millis;
+            System.out.println(e + " - "  +timeSyncronized + " ssss "+ (System.currentTimeMillis() - timeSyncronized));
         }
     }
     
