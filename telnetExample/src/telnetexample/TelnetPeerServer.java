@@ -92,6 +92,9 @@ public class TelnetPeerServer extends Thread {
                         allow = false;
                         ClientSocket.close();
                         break;
+                    default: 
+                        dout.writeUTF("Comando incorrecto");
+                        break;
                 }
             }
         } catch (IOException ex) {
