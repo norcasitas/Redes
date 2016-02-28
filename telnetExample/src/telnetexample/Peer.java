@@ -134,7 +134,13 @@ public class Peer {
         return vehicle;
     }
     
+    public static int getSeats(){
+        return vehicle.available();
+    }
     
+    public void setSeats(int seats){
+        vehicle.setSeats(seats);
+    }
     
     /**
      * Retorno el tiempo de mi reloj en milisegundos

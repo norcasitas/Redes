@@ -47,6 +47,9 @@ public class UDPPeerServer extends Thread {
         //preparo un string que es por ejemplo 1 12386123 pid donde representa la 
         //accion, su tiempo, y el pid del proceso
         String sentence = action + " " + String.valueOf(time) + " " + pid;
+        if (MSGRELEASE == action) {
+            sentence.concat(" " + Peer.getSeats());
+        }
         sendData = sentence.getBytes();
         //lo envio a cada proceso, no espero respuesta sincronica
         for (IPports ip : Peer.ips) {
@@ -89,6 +92,7 @@ public class UDPPeerServer extends Thread {
                     //SI NO REcIbO UN ACK, PUEDO RECIbIR UN RELEASE O UN ENTER.
                     if (action == MSGRELEASE) {
                         Peer.dequeue();
+                        peer.setSeats(Integer.valueOf(str.split(" ")[3]));
                         if (Peer.getFirstPid() == Peer.getPid()) {
                             //ES MI TURNO TENGO QUE EJECUTAR LA ACCION (falta) Y MANDO BRODCAST
                             switch (actionFromClient) {
@@ -102,9 +106,15 @@ public class UDPPeerServer extends Thread {
                                 case MyValues.MSGAVAILABLE:
                                     //Verifico asientos disponibles
                                     peer.getVehicle().available();
+                                    synchronized (LOCK) {
+                                        LOCK.notifyAll();
+                                    }
                                     break;
                                 case MyValues.MSGCANCEL:
                                     peer.getVehicle().cancel(amount);
+                                    synchronized (LOCK) {
+                                        LOCK.notifyAll();
+                                    }
                                     break;
                             }
                             Peer.dequeue();
@@ -140,10 +150,16 @@ public class UDPPeerServer extends Thread {
                                 case MyValues.MSGAVAILABLE:
                                     //Tengo que verificar la cantidad de asientos disponibles.
                                     result = peer.getVehicle().available();
+                                    synchronized (LOCK) {
+                                        LOCK.notifyAll();
+                                    }
                                     break;
                                 case MyValues.MSGCANCEL:
                                     //Cancelo
                                     result = peer.getVehicle().cancel(size);
+                                    synchronized (LOCK) {
+                                        LOCK.notifyAll();
+                                    }
                                     break;
                             }
                             Peer.dequeue();
@@ -167,9 +183,15 @@ public class UDPPeerServer extends Thread {
         Peer.enqueue(qb);
         //notifico a todos que quiero usar el recurso compartido
         broadcast(MSGENTER, time, Peer.getPid());
-        //la negrada de esperar a que el valor esté listo
-        while (result == null) {
-            System.out.println("basura resreve");
+        synchronized (LOCK) {
+            while (result == null) {
+                try {
+                    LOCK.wait();
+                } catch (InterruptedException e) {
+                    // treat interrupt as exit request
+                    break;
+                }
+            }
         }
         boolean ret = (boolean) result;
         result = null;
@@ -204,8 +226,15 @@ public class UDPPeerServer extends Thread {
         QueueObject qb = new QueueObject(time, Peer.getPid());
         Peer.enqueue(qb);
         broadcast(MSGENTER, time, Peer.getPid());
-        while (result == null) {
-
+        synchronized (LOCK) {
+            while (result == null) {
+                try {
+                    LOCK.wait();
+                } catch (InterruptedException e) {
+                    // treat interrupt as exit request
+                    break;
+                }
+            }
         }
         boolean ret = (boolean) result;
         result = null;

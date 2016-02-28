@@ -35,4 +35,8 @@ public class Vehicle {
     public Vehicle() {
         reserved = 0;
     }
+    
+    public void setSeats(int seats){
+        reserved= seats;
+    }
 }
