@@ -156,7 +156,7 @@ public class UDPPeerServer extends Thread {
                                     break;
                                 case MyValues.MSGCANCEL:
                                     //Cancelo
-                                    result = peer.getVehicle().cancel(size);
+                                    result = peer.getVehicle().cancel(amount);
                                     synchronized (LOCK) {
                                         LOCK.notifyAll();
                                     }
