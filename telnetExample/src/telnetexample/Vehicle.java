@@ -21,8 +21,7 @@ public class Vehicle {
 
     public boolean cancel(int seats) {
         if (reserved - seats > 0) {
-            System.out.println("cancel: "+seats);
-            reserved =- seats;
+            reserved -= seats;
             return true;
         } else {
             return false;
