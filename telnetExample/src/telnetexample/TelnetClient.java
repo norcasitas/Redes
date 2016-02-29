@@ -12,7 +12,6 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import static telnetexample.MyValues.*;
 
-      
 public class TelnetClient {
 
     public static void main(String args[]) throws Exception {
@@ -20,20 +19,15 @@ public class TelnetClient {
         String loginName;
         String password;
         String command;
-
         DataInputStream din = new DataInputStream(soc.getInputStream());     //preparo el socket para la entrada   
         DataOutputStream dout = new DataOutputStream(soc.getOutputStream()); //preparo el socket para la salida
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in)); //preparo el buffer para leer desde la terminal
-
         System.out.println("Welcome to Telnet Client");
         System.out.println("Your Credential Please...");
         System.out.print("Login Name :");
-
         loginName = br.readLine(); //leo el usuario desde la terminal
-
         System.out.print("password :");
         password = br.readLine(); //leo la pass desde la terminal
-
         dout.writeUTF(loginName); //escribo en el socket el usuario
         dout.writeUTF(password); //escribo en el socket la pass
 
@@ -52,6 +46,8 @@ public class TelnetClient {
                     System.out.println(din.readUTF());
                 }
             } while (!command.equals("quit"));
+        } else {
+            System.out.println("authentication failure \n system exit");
         }
         soc.close();
     }

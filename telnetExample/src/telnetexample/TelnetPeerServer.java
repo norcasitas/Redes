@@ -5,7 +5,6 @@
  */
 package telnetexample;
 
-import static telnetexample.MyValues.*;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -29,9 +28,11 @@ public class TelnetPeerServer extends Thread {
     private String Password;
     private String command;
     private int parameter;
+    private Peer peer;
 
-    TelnetPeerServer(Socket CSoc) throws Exception {
+    TelnetPeerServer(Socket CSoc, Peer peer) throws Exception {
         ClientSocket = CSoc; //creo el socket para el cliente
+        this.peer = peer;
         System.out.println("Client Connected ...");
         DataInputStream din = new DataInputStream(ClientSocket.getInputStream()); //preparo el socket para la entrada
         DataOutputStream dout = new DataOutputStream(ClientSocket.getOutputStream()); //preparo el socket para la salida
@@ -45,12 +46,9 @@ public class TelnetPeerServer extends Thread {
         try {
             DataInputStream din = new DataInputStream(ClientSocket.getInputStream()); //preparo el socket para la entrada
             DataOutputStream dout = new DataOutputStream(ClientSocket.getOutputStream()); //preparo el socket para la salida
-
             BufferedReader brFin = new BufferedReader(new FileReader("Passwords.txt"));
-
             String LoginInfo = new String("");
             boolean allow = false;
-
             while ((LoginInfo = brFin.readLine()) != null) {
                 StringTokenizer st = new StringTokenizer(LoginInfo);
                 if (LoginName.equals(st.nextToken()) && Password.equals(st.nextToken())) {
@@ -59,29 +57,25 @@ public class TelnetPeerServer extends Thread {
                     break;
                 }
             }
-
             brFin.close();
-
             if (allow == false) {
                 dout.writeUTF("NOT_ALLOWED");
             }
-
             while (allow) {
                 command = din.readUTF().toLowerCase();
-
                 switch (command) {
                     case "reserve":
                         parameter = Integer.valueOf(din.readUTF());
-                        Boolean result = Peer.reserve(parameter);
+                        Boolean result = peer.reserve(parameter);
                         dout.writeUTF(result.toString());
                         break;
                     case "available":
-                        Integer available = Peer.available();
+                        Integer available = peer.available();
                         dout.writeUTF(available.toString());
                         break;
                     case "cancel":
                         parameter = Integer.valueOf(din.readUTF());
-                        boolean cancel = Peer.cancel(parameter);
+                        boolean cancel = peer.cancel(parameter);
                         if (cancel) {
                             dout.writeUTF("Cancelaste exitosamente " + parameter + " pasajes");
                         } else {
@@ -92,7 +86,7 @@ public class TelnetPeerServer extends Thread {
                         allow = false;
                         ClientSocket.close();
                         break;
-                    default: 
+                    default:
                         dout.writeUTF("Comando incorrecto");
                         break;
                 }

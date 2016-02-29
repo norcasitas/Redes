@@ -5,11 +5,6 @@
  */
 package telnetexample;
 
-import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.Map;
-import javafx.util.Pair;
-
 
 public final class MyValues {
     public static final IPports MYIP = new IPports("localhost", 9876,5217); //mantengo ip, puerto udp, puerto telnet

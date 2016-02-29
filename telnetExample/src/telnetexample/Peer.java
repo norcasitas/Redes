@@ -11,42 +11,40 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.Calendar;
+import java.net.SocketException;
 import java.util.LinkedList;
 
 
-/*
- FALTA:
-
- IMPLEMENTAR LA DIFERENCIA EN EL PEER.
- IMPLEMENTAR FUNCIONES DEPENDE EL MATCH.
-
-
- */
 public class Peer {
 
-    static IPports[] ips = new IPports[1];
-    private static Vehicle vehicle;
-    private static LinkedList<QueueObject> queue;
-    private static long timeSyncronized; //utilizado para llevar la diferencia con el reloj propio
-    private static long pid;
-
-    public Peer() throws UnknownHostException {
+    static IPports[] ips = new IPports[1]; //almacena las ips de las distintas centrales
+    private  Vehicle vehicle; //representación del colectivo
+    private  LinkedList<QueueObject> queue;//cola de tareas
+    private  long timeSyncronized; //utilizado para llevar la diferencia con el reloj propio
+    private  long pid; //id del proceso peer
+    private UDPPeerServer udpPeerServer; // manejador de los comandos de udp
+    
+    public Peer() throws SocketException  {
         vehicle = new Vehicle();
-        ips[0] = IPCENTRAL1;
+        ips[0] = MYIP;
         queue = new LinkedList();
         pid = Long.valueOf(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
-        timeSyncronized = System.currentTimeMillis() - 50000; //con esto, hago que el reloj simule empezar en 0
+        timeSyncronized = System.currentTimeMillis() ; //con esto, hago que el reloj simule empezar en 0
+        udpPeerServer = new UDPPeerServer(this); //empiezo a escuchar en UDP puerto 9876
     }
     
+    public void init() throws Exception{
+        udpPeerServer.start();
+        runTelnetServer();
+    }
     /**
      * type es el tipo de puerto que desea retornar, 1 para udp, 2 para telnet
      * si no encuentra la ip, retorna -1
      * @param type
      * @param ip 
+     * @return  numero de puerto
      */
-    public static int getPortByIP(int type,InetAddress ip){
+    public int getPortByIP(int type,InetAddress ip){
         for (IPports ipPort: ips){
             if(ipPort.getIp().equals(ip)){
                 if(type == 1)
@@ -58,7 +56,11 @@ public class Peer {
         return -1;
     }
 
-    static public void enqueue(QueueObject qb) {
+    /**
+     * Encola la terea de un peer en la posición que le corresponde
+     * @param qb 
+     */
+    public void enqueue(QueueObject qb) {
         int i = 0;
         while (i!=queue.size() && (queue.get(i).getTime() <= qb.getTime() || queue.size() < i)) {
             i++;
@@ -70,7 +72,7 @@ public class Peer {
      * obtengo el pid del primero en la cola, en caso de ser vacio, retorno -1
      * @return 
      */
-    static public long getFirstPid(){
+    public long getFirstPid(){
         return queue.size()>0? queue.getFirst().getPid(): -1;
     }
     
@@ -78,7 +80,7 @@ public class Peer {
      * Desencolo el primero en la cola
      * @return 
      */
-    static public QueueObject dequeue(){
+    public QueueObject dequeue(){
         return queue.removeFirst();
     }
     
@@ -86,7 +88,7 @@ public class Peer {
      * Retorna el identificador del proceso
      * @return 
      */
-    static public long getPid(){
+    public long getPid(){
         return pid;
     }
 
@@ -94,7 +96,7 @@ public class Peer {
         ServerSocket Soc = new ServerSocket(MYIP.getPortTelnet());
         while (true) { // en este while voy recibiendo los clientes
             Socket CSoc = Soc.accept();
-            TelnetPeerServer ob = new TelnetPeerServer(CSoc);
+            TelnetPeerServer ob = new TelnetPeerServer(CSoc, this);
         }
     }
 
@@ -102,39 +104,38 @@ public class Peer {
      * actualizo el reloj siempre y cuando el parametro de entrada sea mayor a mi tiempo
      * @param millis 
      */
-    public static void updateTime(long millis){
+    public void updateTime(long millis){
         //si el tiempo que transcurrió desde la ultima sincro es menor al tiempo de entrada,
         //me sincronizo
         long e= System.currentTimeMillis() - timeSyncronized;
-        System.out.println(e + " - "  +millis + " "+ timeSyncronized);
-
-        
         if(System.currentTimeMillis() - timeSyncronized  < millis){
             timeSyncronized = System.currentTimeMillis() - millis;
-            System.out.println(e + " - "  +timeSyncronized + " ssss "+ (System.currentTimeMillis() - timeSyncronized));
         }
     }
     
     /**
      * Transfiero la data que entra por telnet a udp
+     * @param amount
+     * @return 
+     * @throws java.io.IOException
      */
-    public static boolean reserve(int amount) throws IOException{
-        return UDPPeerServer.reserve(amount);
+    public  boolean reserve(int amount) throws IOException{
+        return udpPeerServer.reserve(amount);
     }
 
-    public static int available() throws IOException {
-        return UDPPeerServer.available();
+    public  int available() throws IOException {
+        return udpPeerServer.available();
     }
     
-    public static boolean cancel(int amount) throws IOException{
-        return UDPPeerServer.cancel(amount);
+    public boolean cancel(int amount) throws IOException{
+        return udpPeerServer.cancel(amount);
     }
     
     public Vehicle getVehicle() {
         return vehicle;
     }
     
-    public static int getSeats(){
+    public int getSeats(){
         return vehicle.getReserved();
     }
     
@@ -146,16 +147,12 @@ public class Peer {
      * Retorno el tiempo de mi reloj en milisegundos
      * @return 
      */
-    public static long getMyTimeInMillis(){
+    public long getMyTimeInMillis(){
         long ret=System.currentTimeMillis() - timeSyncronized; //tiempo que transcurrio
-        System.out.println("time "+ret);
         return ret;
     }
     public static void main(String args[]) throws Exception {
-        Peer peer = new Peer();
-        new UDPPeerServer(peer).start(); //empiezo a escuchar en UDP puerto 9876
-        peer.runTelnetServer(); //pongo a correr el telnet en el puerto 5217
-
+        new Peer().init();
     }
 
 }

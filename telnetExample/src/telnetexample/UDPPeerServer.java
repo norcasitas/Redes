@@ -9,7 +9,6 @@ import static telnetexample.MyValues.*;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
@@ -41,19 +40,19 @@ public class UDPPeerServer extends Thread {
      * @throws SocketException
      * @throws IOException
      */
-    public static void broadcast(int action, long time, long pid) throws UnknownHostException, SocketException, IOException {
+    public void broadcast(int action, long time, long pid) throws UnknownHostException, SocketException, IOException {
         DatagramSocket clientSocket = new DatagramSocket();
         java.util.Date date = new java.util.Date();
         //preparo un string que es por ejemplo 1 12386123 pid donde representa la 
         //accion, su tiempo, y el pid del proceso
         String sentence = action + " " + String.valueOf(time) + " " + pid;
         if (MSGRELEASE == action) {
-            sentence+=" " + Peer.getSeats();
+            sentence += " " + peer.getSeats();
         }
         sendData = sentence.getBytes();
         //lo envio a cada proceso, no espero respuesta sincronica
-        for (IPports ip : Peer.ips) {
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip.getIp(), Peer.getPortByIP(1, ip.getIp()));
+        for (IPports ip : peer.ips) {
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip.getIp(), peer.getPortByIP(1, ip.getIp()));
             clientSocket.send(sendPacket);
         }
         clientSocket.close();
@@ -80,162 +79,93 @@ public class UDPPeerServer extends Thread {
                 }
                 // Specify the appropriate encoding as the last argument
                 String str = new String(data, 0, size, "UTF-8");
-
                 //hago un split para obtener la accion a realizar
                 int action = Integer.valueOf(str.split(" ")[0]);
                 //encolo en la cola, un objeto que contiene el timestamp y el pid del proceso del peer que lo envio
                 long time = Long.valueOf(str.split(" ")[1]);
                 long pid = Long.valueOf(str.split(" ")[2]);
                 QueueObject qb = new QueueObject(time, pid);
-                Peer.updateTime(time);
-                if (action != MSGACK) {
-                    //SI NO REcIbO UN ACK, PUEDO RECIbIR UN RELEASE O UN ENTER.
-                    if (action == MSGRELEASE) {
-                        Peer.dequeue();
+                peer.updateTime(time); //sincronizo el reloj
+                switch (action) {
+                    case MSGRELEASE:
+                        peer.dequeue();
                         peer.setSeats(Integer.valueOf(str.split(" ")[3]));
-                        if (Peer.getFirstPid() == Peer.getPid()) {
-                            //ES MI TURNO TENGO QUE EJECUTAR LA ACCION (falta) Y MANDO BRODCAST
-                            switch (actionFromClient) {
-                                case MyValues.MSGRESERVE:
-                                    //tengo que realizar una reserva
-                                    peer.getVehicle().reserve(amount);
-                                    int i=0;
-                                    while(i<10000){
-                                        i++;
-                                        System.out.print("ciclo");
-                                    }
-                                    synchronized (LOCK) {
-                                        LOCK.notifyAll();
-                                    }
-                                    break;
-                                case MyValues.MSGAVAILABLE:
-                                    //Verifico asientos disponibles
-                                    peer.getVehicle().available();
-                                    synchronized (LOCK) {
-                                        LOCK.notifyAll();
-                                    }
-                                    break;
-                                case MyValues.MSGCANCEL:
-                                    peer.getVehicle().cancel(amount);
-                                    synchronized (LOCK) {
-                                        LOCK.notifyAll();
-                                    }
-                                    break;
-                            }
-                            Peer.dequeue();
-                            broadcast(MSGRELEASE, Peer.getMyTimeInMillis(), Peer.getPid());
+                        if (peer.getFirstPid() == peer.getPid()) {
+                            myTurn();
                         }
-                    }
-                    if (action == MSGENTER) {
+                        break;
+                    case MSGENTER:
                         //ENCOLO Y MANDO ACK
-                        Peer.enqueue(qb);
+                        peer.enqueue(qb);
                         //con esto logro sincronizar, si fuera necesario, el tiempo
-                        String ds = MSGACK + " " + String.valueOf(Peer.getMyTimeInMillis()) + " " + Peer.getPid();
+                        String ds = MSGACK + " " + String.valueOf(peer.getMyTimeInMillis()) + " " + peer.getPid();
                         sendData = ds.getBytes();
-                        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), Peer.getPortByIP(1, receivePacket.getAddress()));
+                        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), peer.getPortByIP(1, receivePacket.getAddress()));
                         clientSocket.send(sendPacket); // le respondo que está todo bien
-                    }
-                } else {
-                    System.out.println("DIERON IGUALES!");
-                    receivedAck++;
-                    if (receivedAck == Peer.ips.length) {//recibi todos los ack
-                        if (Peer.getFirstPid() == Peer.getPid()) {
-                            //y soy yo el que sigue en la cola, entonces es mi turno
-                            receivedAck = 0;
-                            //aca estoy en la zona critica, debería hacer lo que necesito
-                            //ES MI TURNO TENGO QUE EJECUTAR LA ACCION (falta) Y MANDO BRODCAST
-                            switch (actionFromClient) {
-                                case MyValues.MSGRESERVE:
-                                    //tengo que realizar una reserva
-                                    result = peer.getVehicle().reserve(amount);
-                                    int i=0;
-                                    while(i<10000){
-                                        i++;
-                                        System.out.print("ciclo");
-                                    }
-                                    synchronized (LOCK) {
-                                        LOCK.notifyAll();
-                                    }
-                                    break;
-                                case MyValues.MSGAVAILABLE:
-                                    //Tengo que verificar la cantidad de asientos disponibles.
-                                    result = peer.getVehicle().available();
-                                    synchronized (LOCK) {
-                                        LOCK.notifyAll();
-                                    }
-                                    break;
-                                case MyValues.MSGCANCEL:
-                                    //Cancelo
-                                    result = peer.getVehicle().cancel(amount);
-                                    synchronized (LOCK) {
-                                        LOCK.notifyAll();
-                                    }
-                                    break;
+                        break;
+                    case MSGACK:
+                        receivedAck++;
+                        if (receivedAck == peer.ips.length) {//recibi todos los ack
+                            if (peer.getFirstPid() == peer.getPid()) {
+                                //y soy yo el que sigue en la cola, entonces es mi turno
+                                receivedAck = 0;
+                                myTurn();
                             }
-                            Peer.dequeue();
-                            broadcast(MSGRELEASE, Peer.getMyTimeInMillis(), Peer.getPid());
                         }
-
-                    }
+                        break;
                 }
+
             } catch (IOException ex) {
                 Logger.getLogger(UDPPeerServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
 
-    public static boolean reserve(int amount) throws SocketException, IOException {
-        System.out.println("line 156 reserve" + amount);
+    public boolean reserve(int amount) throws SocketException, IOException {
         actionFromClient = MyValues.MSGRESERVE;
         UDPPeerServer.amount = amount;
-        long time = Peer.getMyTimeInMillis();
-        QueueObject qb = new QueueObject(time, Peer.getPid());
-        Peer.enqueue(qb);
+        long time = peer.getMyTimeInMillis();
+        QueueObject qb = new QueueObject(time, peer.getPid());
+        peer.enqueue(qb);
         //notifico a todos que quiero usar el recurso compartido
-        broadcast(MSGENTER, time, Peer.getPid());
-        synchronized (LOCK) {
-            while (result == null) {
-                try {
-                    LOCK.wait();
-                } catch (InterruptedException e) {
-                    // treat interrupt as exit request
-                    break;
-                }
-            }
-        }
+        broadcast(MSGENTER, time, peer.getPid());
+        lock();
         boolean ret = (boolean) result;
         result = null;
         return ret;
     }
 
-    public static int available() throws SocketException, IOException {
+    public int available() throws SocketException, IOException {
         actionFromClient = MyValues.MSGAVAILABLE;
-        long time = Peer.getMyTimeInMillis();
-        QueueObject qb = new QueueObject(time, Peer.getPid());
-        Peer.enqueue(qb);
-        broadcast(MSGENTER, time, Peer.getPid());
-        synchronized (LOCK) {
-            while (result == null) {
-                try {
-                    LOCK.wait();
-                } catch (InterruptedException e) {
-                    // treat interrupt as exit request
-                    break;
-                }
-            }
-        }
+        long time = peer.getMyTimeInMillis();
+        QueueObject qb = new QueueObject(time, peer.getPid());
+        peer.enqueue(qb);
+        broadcast(MSGENTER, time, peer.getPid());
+        System.out.println("avaialable");
+        lock();
+        System.out.println("avaialable 2");
         int ret = (int) result;
         result = null;
         return ret;
     }
 
-    public static boolean cancel(int amount) throws SocketException, IOException {
+    public boolean cancel(int amount) throws SocketException, IOException {
         actionFromClient = MyValues.MSGCANCEL;
         UDPPeerServer.amount = amount;
-        long time = Peer.getMyTimeInMillis();
-        QueueObject qb = new QueueObject(time, Peer.getPid());
-        Peer.enqueue(qb);
-        broadcast(MSGENTER, time, Peer.getPid());
+        long time = peer.getMyTimeInMillis();
+        QueueObject qb = new QueueObject(time, peer.getPid());
+        peer.enqueue(qb);
+        broadcast(MSGENTER, time, peer.getPid());
+        lock();
+        boolean ret = (boolean) result;
+        result = null;
+        return ret;
+    }
+
+    /**
+     * Bloquea el thread corriente si result es null
+     */
+    private void lock() {
         synchronized (LOCK) {
             while (result == null) {
                 try {
@@ -246,9 +176,32 @@ public class UDPPeerServer extends Thread {
                 }
             }
         }
-        boolean ret = (boolean) result;
-        result = null;
-        return ret;
+    }
+
+    /**
+     * Metodo que se ejecuta cuando me toca a mi utilizar el area critica
+     */
+    private void myTurn() throws SocketException, IOException {
+        //ES MI TURNO TENGO QUE EJECUTAR LA ACCION (falta) Y MANDO BRODCAST
+        System.out.println("my turn");
+        switch (actionFromClient) {
+            case MyValues.MSGRESERVE:
+                //tengo que realizar una reserva
+                result = peer.getVehicle().reserve(amount);
+                break;
+            case MyValues.MSGAVAILABLE:
+                //Verifico asientos disponibles
+                result = peer.getVehicle().available();
+                break;
+            case MyValues.MSGCANCEL:
+                result = peer.getVehicle().cancel(amount);
+                break;
+        }
+        synchronized (LOCK) {
+            LOCK.notifyAll();
+        }
+        peer.dequeue();
+        broadcast(MSGRELEASE, peer.getMyTimeInMillis(), peer.getPid());
     }
 
 }
