@@ -99,6 +99,11 @@ public class UDPPeerServer extends Thread {
                                 case MyValues.MSGRESERVE:
                                     //tengo que realizar una reserva
                                     peer.getVehicle().reserve(amount);
+                                    int i=0;
+                                    while(i<10000){
+                                        i++;
+                                        System.out.print("ciclo");
+                                    }
                                     synchronized (LOCK) {
                                         LOCK.notifyAll();
                                     }
@@ -143,6 +148,11 @@ public class UDPPeerServer extends Thread {
                                 case MyValues.MSGRESERVE:
                                     //tengo que realizar una reserva
                                     result = peer.getVehicle().reserve(amount);
+                                    int i=0;
+                                    while(i<10000){
+                                        i++;
+                                        System.out.print("ciclo");
+                                    }
                                     synchronized (LOCK) {
                                         LOCK.notifyAll();
                                     }
