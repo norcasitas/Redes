@@ -51,7 +51,7 @@ public class UDPPeerServer extends Thread {
         }
         sendData = sentence.getBytes();
         //lo envio a cada proceso, no espero respuesta sincronica
-        for (IPports ip : peer.ips) {
+        for (IPports ip : peer.getIps()) {
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip.getIp(), peer.getPortByIP(1, ip.getIp()));
             clientSocket.send(sendPacket);
         }
@@ -105,13 +105,22 @@ public class UDPPeerServer extends Thread {
                         break;
                     case MSGACK:
                         receivedAck++;
-                        if (receivedAck == peer.ips.length) {//recibi todos los ack
+                        if (receivedAck == peer.getIps().size()) {//recibi todos los ack
                             if (peer.getFirstPid() == peer.getPid()) {
                                 //y soy yo el que sigue en la cola, entonces es mi turno
                                 receivedAck = 0;
                                 myTurn();
                             }
                         }
+                        break;
+                    case MSGNEWCONECTION:
+                        peer.addIP(peer.getIPPortsByIP(receivePacket.getAddress()));
+                        broadcast(MSGACKNEWCONECTION, peer.getMyTimeInMillis(), peer.getPid());
+                        //aca faltaría notificar como está el colectivo y como está la cola
+                        break;
+                    case MSGACKNEWCONECTION:
+                        peer.addIP(peer.getIPPortsByIP(receivePacket.getAddress()));
+                        //falta obtener como está el colectivo y la cola, para restaurar
                         break;
                 }
 

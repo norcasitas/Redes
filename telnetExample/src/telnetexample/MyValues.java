@@ -15,4 +15,6 @@ public final class MyValues {
     public static final int MSGACK = 4;
     public static final int MSGENTER = 5;
     public static final int MSGRELEASE = 6;
+    public static final int MSGNEWCONECTION = 7;
+    public static final int MSGACKNEWCONECTION = 8;
 }

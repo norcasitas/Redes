@@ -17,7 +17,7 @@ import java.util.LinkedList;
 
 public class Peer {
 
-    static IPports[] ips = new IPports[1]; //almacena las ips de las distintas centrales
+    private  LinkedList<IPports> ips = new LinkedList<>(); //almacena las ips de las distintas centrales
     private  Vehicle vehicle; //representación del colectivo
     private  LinkedList<QueueObject> queue;//cola de tareas
     private  long timeSyncronized; //utilizado para llevar la diferencia con el reloj propio
@@ -26,7 +26,7 @@ public class Peer {
     
     public Peer() throws SocketException  {
         vehicle = new Vehicle();
-        ips[0] = MYIP;
+        ips.add(MYIP);
         queue = new LinkedList();
         pid = Long.valueOf(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
         timeSyncronized = System.currentTimeMillis() ; //con esto, hago que el reloj simule empezar en 0
@@ -36,6 +36,10 @@ public class Peer {
     public void init() throws Exception{
         udpPeerServer.start();
         runTelnetServer();
+    }
+    
+    private void notifyConection() throws SocketException, IOException{
+        udpPeerServer.broadcast(MSGNEWCONECTION, getMyTimeInMillis(), pid);
     }
     /**
      * type es el tipo de puerto que desea retornar, 1 para udp, 2 para telnet
@@ -56,6 +60,12 @@ public class Peer {
         return -1;
     }
 
+    public IPports getIPPortsByIP(InetAddress ip){
+        if(ip.equals(IPCENTRAL1.getIp()))
+            return IPCENTRAL1;
+        else
+            return MYIP;
+    }
     /**
      * Encola la terea de un peer en la posición que le corresponde
      * @param qb 
@@ -151,6 +161,17 @@ public class Peer {
         long ret=System.currentTimeMillis() - timeSyncronized; //tiempo que transcurrio
         return ret;
     }
+
+    public LinkedList<IPports> getIps() {
+        return ips;
+    }
+    
+    public void addIP(IPports ip){
+        ips.add(ip);
+    }
+    
+    
+    
     public static void main(String args[]) throws Exception {
         new Peer().init();
     }
