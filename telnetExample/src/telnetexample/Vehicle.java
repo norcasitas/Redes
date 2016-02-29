@@ -20,7 +20,7 @@ public class Vehicle {
     }
 
     public boolean cancel(int seats) {
-        if (reserved - seats > 0) {
+        if (reserved - seats >= 0) {
             reserved -= seats;
             return true;
         } else {
