@@ -66,7 +66,8 @@ public class TelnetPeerServer extends Thread {
                 command = bufferIn.readLine().toLowerCase();
                 switch (command) {
                     case "reserve":
-                        parameter = Integer.valueOf(bufferIn.readLine());
+                        String s= bufferIn.readLine();
+                        parameter = Integer.valueOf(s);
                         Boolean result = peer.reserve(parameter);
                         bufferOut.writeChars(result.toString() +"\nCentral Prompt> ");
                         break;

@@ -11,6 +11,7 @@ import java.io.FileReader;
 import static telnetexample.MyValues.*;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -34,6 +35,9 @@ public class Peer {
         vehicle = new Vehicle();
         readIpsFromFile();
         queue = new LinkedList();
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in)); //preparo el buffer para leer desde la terminal
+        MYIP.setPortUDP(Integer.valueOf(br.readLine()));
+        MYIP.setPortTelnet(Integer.valueOf(br.readLine()));
         pid = Long.valueOf(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
         time = 0;
         udpPeerServer = new UDPPeerServer(this); //empiezo a escuchar en UDP puerto 9876
@@ -42,10 +46,10 @@ public class Peer {
 
     private void readIpsFromFile() throws FileNotFoundException, IOException {
         BufferedReader brFin = new BufferedReader(new FileReader("ips.txt"));
-        String ipWithPorts="";
+        String ipWithPorts = "";
         while ((ipWithPorts = brFin.readLine()) != null) {
             StringTokenizer st = new StringTokenizer(ipWithPorts);
-            allIps.add(new IPports(st.nextToken(), Integer.valueOf(st.nextToken()), Integer.valueOf(st.nextToken())));   
+            allIps.add(new IPports(st.nextToken(), Integer.valueOf(st.nextToken()), Integer.valueOf(st.nextToken())));
         }
     }
 
@@ -55,18 +59,17 @@ public class Peer {
     }
 
     private void notifyConection() throws SocketException, IOException {
-        DatagramSocket clientSocket = new DatagramSocket();
-        java.util.Date date = new java.util.Date();
         //preparo un string que es por ejemplo 1 12386123 pid donde representa la 
         //accion, su tiempo, y el pid del proceso
         String sentence = MSGNEWCONECTION + " " + String.valueOf(time) + " " + pid;
         byte[] sendData = sentence.getBytes();
         //lo envio a cada proceso, no espero respuesta sincronica
         for (IPports ip : allIps) {
+            DatagramSocket clientSocket = new DatagramSocket();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip.getIp(), ip.getPortUDP());
             clientSocket.send(sendPacket);
+            clientSocket.close();
         }
-        clientSocket.close();
 
     }
 
@@ -136,8 +139,8 @@ public class Peer {
      * @return
      */
     public QueueObject dequeue() {
-        
-        return queue.isEmpty() ? null :queue.removeFirst();
+
+        return queue.isEmpty() ? null : queue.removeFirst();
     }
 
     /**

@@ -14,6 +14,7 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class UDPPeerServer extends Thread {
 
@@ -42,7 +43,6 @@ public class UDPPeerServer extends Thread {
      * @throws IOException
      */
     public void broadcast(int action, int time, long pid) throws UnknownHostException, SocketException, IOException {
-        DatagramSocket clientSocket = new DatagramSocket();
         //preparo un string que es por ejemplo 1 12386123 pid donde representa la 
         //accion, su tiempo, y el pid del proceso
         String sentence = action + " " + String.valueOf(time) + " " + pid;
@@ -52,10 +52,11 @@ public class UDPPeerServer extends Thread {
         sendData = sentence.getBytes();
         //lo envio a cada proceso, no espero respuesta sincronica
         for (IPports ip : peer.getIps()) {
+            DatagramSocket clientSocket = new DatagramSocket();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip.getIp(), peer.getPortByIP(1, ip.getIp()));
             clientSocket.send(sendPacket);
+            clientSocket.close();
         }
-        clientSocket.close();
 
     }
 
@@ -93,7 +94,7 @@ public class UDPPeerServer extends Thread {
                 serverSocket.receive(receivePacket);
                 String sentence = new String(receivePacket.getData());
                 byte[] data = receivePacket.getData();
-                //System.out.println("RECEIVED in thread udppeerserver: " + sentence);
+                System.out.println("RECEIVED in thread udppeerserver: " + sentence);
                 int size = 0;
                 while (size < data.length) {//obtengo el tamaño del mensaje, eliminando la basura
                     if (data[size] == 0) {
@@ -102,7 +103,7 @@ public class UDPPeerServer extends Thread {
                     size++;
                 }
                 // Specify the appropriate encoding as the last argument
-                String str[] = new String(data, 0, size, "UTF-8").split(" ");
+                String str[] = new String(data, 0, size).split(" ");
                 //hago un split para obtener la accion a realizar
                 int action = Integer.valueOf(str[0]);
                 //encolo en la cola, un objeto que contiene el timestamp y el pid del proceso del peer que lo envio
