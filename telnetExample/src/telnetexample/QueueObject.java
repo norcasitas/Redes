@@ -7,7 +7,7 @@ package telnetexample;
 
 
 public class QueueObject {
-    private long time;
+    private int time;
    private long pid;
 
    /**
@@ -15,12 +15,12 @@ public class QueueObject {
     * @param time
     * @param pid 
     */
-    public QueueObject(long time, long pid) {
+    public QueueObject(int time, long pid) {
         this.time = time;
         this.pid = pid;
     }
 
-    public long getTime() {
+    public int getTime() {
         return time;
     }
 
@@ -28,6 +28,10 @@ public class QueueObject {
         return pid;
     }
     
+    @Override
+    public String toString(){
+        return "time: "+ time+" - pid: "+ pid;
+    }
     
 }
 

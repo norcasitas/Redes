@@ -54,5 +54,8 @@ public class IPports {
         this.portTelnet = portTelnet;
     }
  
+    public String toString(){
+        return ip.getHostAddress() +"-"+ portUDP +"-"+portTelnet;
+    }
     
 }

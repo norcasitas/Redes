@@ -10,6 +10,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
@@ -21,73 +22,73 @@ import java.util.logging.Logger;
  */
 public class TelnetPeerServer extends Thread {
 
-    private Socket ClientSocket;
-    private DataInputStream din;
-    private DataOutputStream dout;
-    private String LoginName;
-    private String Password;
+    private Socket clientSocket;
+    private String loginName;
+    private String password;
     private String command;
     private int parameter;
     private Peer peer;
+    private BufferedReader bufferIn;
+    DataOutputStream bufferOut;
 
     TelnetPeerServer(Socket CSoc, Peer peer) throws Exception {
-        ClientSocket = CSoc; //creo el socket para el cliente
+        clientSocket = CSoc; //creo el socket para el cliente
         this.peer = peer;
         System.out.println("Client Connected ...");
-        DataInputStream din = new DataInputStream(ClientSocket.getInputStream()); //preparo el socket para la entrada
-        DataOutputStream dout = new DataOutputStream(ClientSocket.getOutputStream()); //preparo el socket para la salida
         System.out.println("Waiting for UserName And Password");
-        LoginName = din.readUTF(); //leo desde el socket el usuario
-        Password = din.readUTF(); //leo desde el socket la pass
+        bufferIn=new BufferedReader(new InputStreamReader(new DataInputStream(clientSocket.getInputStream())));
+        bufferOut = new DataOutputStream(clientSocket.getOutputStream()); //preparo el socket para la salida
+        bufferOut.writeChars("Ingrese user\nCentral Promt> ");
+        loginName = bufferIn.readLine();
+        bufferOut.writeChars("Ingrese pass\nCentral Promt> ");
+        password = bufferIn.readLine();
         start(); //inicio el thread para leer los comandos de este cliente
     }
 
     public void run() {
         try {
-            DataInputStream din = new DataInputStream(ClientSocket.getInputStream()); //preparo el socket para la entrada
-            DataOutputStream dout = new DataOutputStream(ClientSocket.getOutputStream()); //preparo el socket para la salida
             BufferedReader brFin = new BufferedReader(new FileReader("Passwords.txt"));
-            String LoginInfo = new String("");
+            String LoginInfo = "";
             boolean allow = false;
             while ((LoginInfo = brFin.readLine()) != null) {
                 StringTokenizer st = new StringTokenizer(LoginInfo);
-                if (LoginName.equals(st.nextToken()) && Password.equals(st.nextToken())) {
-                    dout.writeUTF("ALLOWED");
+                if (loginName.equals(st.nextToken()) && password.equals(st.nextToken())) {
+                    bufferOut.writeChars("ALLOWED\nCentral Promt> ");
                     allow = true;
                     break;
                 }
             }
             brFin.close();
             if (allow == false) {
-                dout.writeUTF("NOT_ALLOWED");
+                bufferOut.writeChars("NOT_ALLOWED\nCentral Promt> ");
             }
             while (allow) {
-                command = din.readUTF().toLowerCase();
+                command = bufferIn.readLine().toLowerCase();
                 switch (command) {
                     case "reserve":
-                        parameter = Integer.valueOf(din.readUTF());
+                        parameter = Integer.valueOf(bufferIn.readLine());
                         Boolean result = peer.reserve(parameter);
-                        dout.writeUTF(result.toString());
+                        bufferOut.writeChars(result.toString() +"\nCentral Prompt> ");
                         break;
                     case "available":
                         Integer available = peer.available();
-                        dout.writeUTF(available.toString());
+                        bufferOut.writeChars(available.toString()+"\nCentral Prompt> ");
                         break;
                     case "cancel":
-                        parameter = Integer.valueOf(din.readUTF());
+                        parameter = Integer.valueOf(bufferIn.readLine());
                         boolean cancel = peer.cancel(parameter);
                         if (cancel) {
-                            dout.writeUTF("Cancelaste exitosamente " + parameter + " pasajes");
+                            bufferOut.writeChars("Cancelaste exitosamente " + parameter + " pasajes \nCentral Prompt> ");
                         } else {
-                            dout.writeUTF("Error: La cantidad de asientos a cancelar tiene que ser menor a la de asientos reservados");
+                            bufferOut.writeChars("Error: La cantidad de asientos a cancelar tiene que ser menor a la de asientos reservados \nCentral Prompt> ");
                         }
                         break;
                     case "quit":
                         allow = false;
-                        ClientSocket.close();
+                        clientSocket.close();
                         break;
                     default:
-                        dout.writeUTF("Comando incorrecto");
+                        bufferOut.writeChars("Comando incorrecto\nCentral Prompt>");
                         break;
                 }
             }
