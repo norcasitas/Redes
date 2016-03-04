@@ -11,7 +11,7 @@ public class Vehicle {
     private final int SEATS = 10;
 
     public boolean reserve(int seats) {
-        if (SEATS - reserved >= seats) {
+        if (seats >= 0 && SEATS - reserved >= seats) {
             reserved += seats;
             return true;
         } else {
@@ -20,7 +20,7 @@ public class Vehicle {
     }
 
     public boolean cancel(int seats) {
-        if (reserved - seats >= 0) {
+        if (seats >= 0 && reserved - seats >= 0) {
             reserved -= seats;
             return true;
         } else {

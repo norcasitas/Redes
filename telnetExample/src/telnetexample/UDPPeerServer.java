@@ -11,10 +11,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 public class UDPPeerServer extends Thread {
 
@@ -94,7 +92,7 @@ public class UDPPeerServer extends Thread {
                 serverSocket.receive(receivePacket);
                 String sentence = new String(receivePacket.getData());
                 byte[] data = receivePacket.getData();
-                System.out.println("RECEIVED in thread udppeerserver: " + sentence);
+                //System.out.println("RECEIVED in thread udppeerserver: " + sentence);
                 int size = 0;
                 while (size < data.length) {//obtengo el tamaño del mensaje, eliminando la basura
                     if (data[size] == 0) {

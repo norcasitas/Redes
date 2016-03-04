@@ -38,9 +38,9 @@ public class TelnetPeerServer extends Thread {
         System.out.println("Waiting for UserName And Password");
         bufferIn=new BufferedReader(new InputStreamReader(new DataInputStream(clientSocket.getInputStream())));
         bufferOut = new DataOutputStream(clientSocket.getOutputStream()); //preparo el socket para la salida
-        bufferOut.writeChars("Ingrese user\nCentral Promt> ");
+        bufferOut.writeChars("Username:\nCentral Prompt> ");
         loginName = bufferIn.readLine();
-        bufferOut.writeChars("Ingrese pass\nCentral Promt> ");
+        bufferOut.writeChars("Password:\nCentral Prompt> ");
         password = bufferIn.readLine();
         start(); //inicio el thread para leer los comandos de este cliente
     }
@@ -53,14 +53,14 @@ public class TelnetPeerServer extends Thread {
             while ((LoginInfo = brFin.readLine()) != null) {
                 StringTokenizer st = new StringTokenizer(LoginInfo);
                 if (loginName.equals(st.nextToken()) && password.equals(st.nextToken())) {
-                    bufferOut.writeChars("ALLOWED\nCentral Promt> ");
+                    bufferOut.writeChars("ALLOWED\nCentral Prompt> ");
                     allow = true;
                     break;
                 }
             }
             brFin.close();
             if (allow == false) {
-                bufferOut.writeChars("NOT_ALLOWED\nCentral Promt> ");
+                bufferOut.writeChars("NOT_ALLOWED\nCentral Prompt> ");
             }
             while (allow) {
                 command = bufferIn.readLine().toLowerCase();
@@ -69,19 +69,23 @@ public class TelnetPeerServer extends Thread {
                         String s= bufferIn.readLine();
                         parameter = Integer.valueOf(s);
                         Boolean result = peer.reserve(parameter);
-                        bufferOut.writeChars(result.toString() +"\nCentral Prompt> ");
+                        if (result){
+                            bufferOut.writeChars(parameter + "tickets reserved\nCentral Prompt> ");
+                        } else {
+                            bufferOut.writeChars("Error: bad parameter\nCentral Prompt> ");
+                        }
                         break;
                     case "available":
                         Integer available = peer.available();
-                        bufferOut.writeChars(available.toString()+"\nCentral Prompt> ");
+                        bufferOut.writeChars("Available seats: "+available.toString()+"\nCentral Prompt> ");
                         break;
                     case "cancel":
                         parameter = Integer.valueOf(bufferIn.readLine());
                         boolean cancel = peer.cancel(parameter);
                         if (cancel) {
-                            bufferOut.writeChars("Cancelaste exitosamente " + parameter + " pasajes \nCentral Prompt> ");
+                            bufferOut.writeChars(parameter+" tickets cancelled\nCentral Prompt> ");
                         } else {
-                            bufferOut.writeChars("Error: La cantidad de asientos a cancelar tiene que ser menor a la de asientos reservados \nCentral Prompt> ");
+                            bufferOut.writeChars("Error: bad parameter\nCentral Prompt> ");
                         }
                         break;
                     case "quit":
@@ -89,7 +93,7 @@ public class TelnetPeerServer extends Thread {
                         clientSocket.close();
                         break;
                     default:
-                        bufferOut.writeChars("Comando incorrecto\nCentral Prompt>");
+                        bufferOut.writeChars("No such command\nCentral Prompt> ");
                         break;
                 }
             }

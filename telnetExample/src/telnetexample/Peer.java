@@ -236,7 +236,7 @@ public class Peer {
      * @param size
      */
     public void setQueueWithTrash(int size) {
-        System.out.println("viendo cola antes");
+        //System.out.println("viendo cola antes");
         for (QueueObject q : queue) {
             System.out.println(q.toString());
         }
@@ -244,7 +244,7 @@ public class Peer {
         for (int i = 0; i < size; i++) {
             queue.add(new QueueObject(-1, -1));
         }
-        System.out.println("viendo cola despues");
+        //System.out.println("viendo cola despues");
         for (QueueObject q : queue) {
             System.out.println(q.toString());
         }
