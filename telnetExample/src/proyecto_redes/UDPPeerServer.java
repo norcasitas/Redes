@@ -1,11 +1,10 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Class that represents a thread that listens for the messages passed through the
+ * UDP port of the peer.
  */
 package proyecto_redes;
 
-import static proyecto_redes.MyValues.*;
+import static proyecto_redes.Messages.*;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -20,36 +19,37 @@ public class UDPPeerServer extends Thread {
     private static byte[] sendData;
     private static byte[] receiveData;
     private int receivedAck;
-    private static int actionFromClient; //utilizado para saber si voy a reservar, cancelar, etc
+    private static int actionFromClient;
     private static int amount;
-    private static Object result; //utilizado para la sincro
+    private static Object result;
     private Peer peer;
-    private static Object LOCK = new Object(); // just something to lock on
+    private static final Object LOCK = new Object();
 
     public UDPPeerServer(Peer peer) throws SocketException {
-        serverSocket = new DatagramSocket(MYIP.getPortUDP());
+        serverSocket = new DatagramSocket(Peer.getMYIP().getPortUDP());
         receiveData = new byte[512];
         this.peer = peer;
     }
 
     /**
-     * Realiza un broadcast con la accion que desea realizar el peer
+     * Sendas a broadcast to all peers connected with the action that this peer
+     * wants to do.
      *
-     * @param action
+     * @param action The action that this peer wants to do.
+     * @param time The time of this peer.
+     * @param pid The process id of this peer.
      * @throws UnknownHostException
      * @throws SocketException
      * @throws IOException
      */
     public void broadcast(int action, int time, long pid) throws UnknownHostException, SocketException, IOException {
-        //preparo un string que es por ejemplo 1 12386123 pid donde representa la 
-        //accion, su tiempo, y el pid del proceso
-        String sentence = action + " " + String.valueOf(time) + " " + pid;
+        String sentence = action + " " + String.valueOf(time) + " " + pid; //Creates a sentence with the action, the time of the peer and the peer id.
         if (MSGRELEASE == action) {
-            sentence += " " + peer.getSeats();
+            sentence += " " + peer.getReservedSeats(); //If the peer wants to release the resource, concatenate the current state of it.
         }
         sendData = sentence.getBytes();
-        //lo envio a cada proceso, no espero respuesta sincronica
-        for (IPports ip : peer.getIps()) {
+        //Sends it to every connected peer, does not wait for a synchronic response
+        for (IPPorts ip : peer.getIps()) {
             DatagramSocket clientSocket = new DatagramSocket();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip.getIp(), peer.getPortByIP(1, ip.getIp()));
             clientSocket.send(sendPacket);
@@ -59,25 +59,23 @@ public class UDPPeerServer extends Thread {
     }
 
     /**
-     * Envia un mensaje con el estado de la cola y bus a un peer en especial
+     * Sends a message with the state of the priority queue of tasks and the shared resource to a 
+     * specific peer.
      *
-     * @param action
-     * @param time
-     * @param pid
-     * @param ipDestiny
+     * @param action The action that this peer wants to do.
+     * @param time The time of this peer.
+     * @param pid The process id of this peer.
+     * @param ipDestiny The destination peer IP.
      * @throws SocketException
      * @throws IOException
      */
-    public void sendMessageWithBusState(int action, int time, long pid, IPports ipDestiny) throws SocketException, IOException {
+    public void sendMessageWithBusState(int action, int time, long pid, IPPorts ipDestiny) throws SocketException, IOException {
         DatagramSocket clientSocket = new DatagramSocket();
-        //preparo un string que es por ejemplo 1 12386123 pid donde representa la 
-        //accion, su tiempo, y el pid del proceso
         String sentence = action + " " + String.valueOf(time) + " " + pid;
-        //le envio el estado del bus y la cantidad de elementos en la cola
-        String busState = peer.getVehicle().getReserved() + " " + peer.getQueue().size();
+        String busState = peer.getVehicle().getReservedSeats() + " " + peer.getQueue().size(); //Creates a string with the current state of the vehicle and the size of the priority queue.
         sentence = sentence + " " + busState;
         sendData = sentence.getBytes();
-        //lo envio a cada proceso, no espero respuesta sincronica
+        //Sends it to every connected peer, does not wait for a synchronic response
         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ipDestiny.getIp(), peer.getPortByIP(1, ipDestiny.getIp()));
         clientSocket.send(sendPacket);
         clientSocket.close();
@@ -87,62 +85,63 @@ public class UDPPeerServer extends Thread {
     public void run() {
         while (true) {
             try {
-                //empiezo a escuchar mensajes que entren por udp
+                //Listens to the messages that comes through the UDP port.
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
                 DatagramSocket clientSocket = new DatagramSocket();
                 serverSocket.receive(receivePacket);
-                String sentence = new String(receivePacket.getData());
                 byte[] data = receivePacket.getData();
                 int size = 0;
-                while (size < data.length) {//obtengo el tamaño del mensaje, eliminando la basura
+                while (size < data.length) {//Obtain the size of the message and discards the trash.
                     if (data[size] == 0) {
                         break;
                     }
                     size++;
                 }
                 // Specify the appropriate encoding as the last argument
+                // Split the received message to obtain all the relevant data.
                 String str[] = new String(data, 0, size).split(" ");
-                //hago un split para obtener la accion a realizar
                 int action = Integer.valueOf(str[0]);
-                //encolo en la cola, un objeto que contiene el tiempo y el pid del proceso del peer que lo envio
                 int time = Integer.valueOf(str[1]);
                 long pid = Long.valueOf(str[2]);
+                // Create a QueueObject that represents a new task, it contains the time and the process id of the peer.
                 QueueObject qb = new QueueObject(time, pid);
-                peer.updateTime(time); //sincronizo el reloj
+                peer.updateTime(time); //Updates the time.
                 switch (action) {
                     case MSGRELEASE:
                         peer.dequeue();
-                        peer.setSeats(Integer.valueOf(str[3]));
+                        peer.setReservedSeats(Integer.valueOf(str[3]));
                         if (peer.getFirstPid() == peer.getPid()) {
                             myTurn();
                         }
                         break;
                     case MSGENTER:
-                        //ENCOLO Y MANDO ACK
                         peer.enqueue(qb);
-                        //con esto logro sincronizar, si fuera necesario, el tiempo
+                        //Synchronizes if necessary the time.
                         String ds = MSGACK + " " + String.valueOf(peer.getTime()) + " " + peer.getPid();
                         sendData = ds.getBytes();
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), peer.getPortByIP(1, receivePacket.getAddress()));
-                        clientSocket.send(sendPacket); // le respondo que está todo bien
+                        clientSocket.send(sendPacket); //Send a response with an ACK.
                         break;
                     case MSGACK:
                         receivedAck++;
-                        if (receivedAck == peer.getIps().size()) {//recibi todos los ack
+                        if (receivedAck == peer.getIps().size()) {//This peer received all the acks
                             if (peer.getFirstPid() == peer.getPid()) {
-                                //y soy yo el que sigue en la cola, entonces es mi turno
+                                //This peer is the next one on the queue.
                                 receivedAck = 0;
                                 myTurn();
                             }
                         }
                         break;
-                    case MSGNEWCONECTION:
+                    case MSGNEWCONECTION: //Add a new IP and send an ACK with the shared resource state and the task queue.
                         peer.addIP(peer.getIPPortsByIP(receivePacket.getAddress()));
                         sendMessageWithBusState(MSGACKNEWCONECTION, peer.getTime(), peer.getPid(), peer.getIPPortsByIP(receivePacket.getAddress()));
                         break;
-                    case MSGACKNEWCONECTION:
+                    case MSGACKNEWCONECTION: 
+                        /*When other peer acknowledges this peer connection, add it to the connected IPs, set the current status
+                        * of the shared resources and fill the queue with trash tasks.
+                        */
                         peer.addIP(peer.getIPPortsByIP(receivePacket.getAddress()));
-                        peer.getVehicle().setSeats(Integer.valueOf(str[3]));
+                        peer.getVehicle().setReservedSeats(Integer.valueOf(str[3]));
                         peer.setQueueWithTrash(Integer.valueOf(str[4]));
                         break;
                 }
@@ -153,36 +152,24 @@ public class UDPPeerServer extends Thread {
         }
     }
 
+    /**
+     * Reserves the specified amount of seats.
+     * @param amount The amount of seats to reserve.
+     * @return True if the seats were reserved, false otherwise.
+     * @throws SocketException
+     * @throws IOException
+     */
     public boolean reserve(int amount) throws SocketException, IOException {
-        actionFromClient = MyValues.MSGRESERVE;
+        actionFromClient = Messages.MSGRESERVE;
         UDPPeerServer.amount = amount;
         int time = peer.getTime();
         QueueObject qb = new QueueObject(time, peer.getPid());
         peer.enqueue(qb);
-        //si no hay otros peer conectados, no espero los akcs ni hago broadcast
+        //If there are no other peers connected, don't wait for acknowledge of other peers and don't send a broadcast.
         if (peer.getIps().isEmpty()) {
             myTurn();
         } else {
-            //notifico a todos que quiero usar el recurso compartido
-            broadcast(MSGENTER, time, peer.getPid());
-            lock();
-        }
-        boolean ret = (boolean) result;
-        result = null;
-        return ret;
-    }
-
-    public boolean cancel(int amount) throws SocketException, IOException {
-        actionFromClient = MyValues.MSGCANCEL;
-        UDPPeerServer.amount = amount;
-        int time = peer.getTime();
-        QueueObject qb = new QueueObject(time, peer.getPid());
-        peer.enqueue(qb);
-        //si no hay otros peer conectados, no espero los akcs ni hago broadcast
-        if (peer.getIps().isEmpty()) {
-            myTurn();
-        } else {
-            //notifico a todos que quiero usar el recurso compartido
+            //Notify other connected peers that this peer wants to use the shared resource.
             broadcast(MSGENTER, time, peer.getPid());
             lock();
         }
@@ -192,7 +179,33 @@ public class UDPPeerServer extends Thread {
     }
 
     /**
-     * Bloquea el thread corriente si result es null
+     * Cancel the specified amount of reserved seats.
+     * @param amount The amount of reserved seats to cancel.
+     * @return True if the reserves were cancelled, false otherwise.
+     * @throws SocketException
+     * @throws IOException
+     */
+    public boolean cancel(int amount) throws SocketException, IOException {
+        actionFromClient = Messages.MSGCANCEL;
+        UDPPeerServer.amount = amount;
+        int time = peer.getTime();
+        QueueObject qb = new QueueObject(time, peer.getPid());
+        peer.enqueue(qb);
+        //If there are no other peers connected, don't wait for acknowledge of other peers and don't send a broadcast.
+        if (peer.getIps().isEmpty()) {
+            myTurn();
+        } else {
+            //Notify other connected peers that this peer wants to use the shared resource.
+            broadcast(MSGENTER, time, peer.getPid());
+            lock();
+        }
+        boolean ret = (boolean) result;
+        result = null;
+        return ret;
+    }
+
+    /**
+     * Blocks the current thread if result equals null
      */
     private void lock() {
         synchronized (LOCK) {
@@ -200,7 +213,7 @@ public class UDPPeerServer extends Thread {
                 try {
                     LOCK.wait();
                 } catch (InterruptedException e) {
-                    // treat interrupt as exit request
+                    // Treat interrupt as exit request
                     break;
                 }
             }
@@ -208,24 +221,28 @@ public class UDPPeerServer extends Thread {
     }
 
     /**
-     * Metodo que se ejecuta cuando me toca a mi utilizar el area critica
+     * Method that is executed when this peer is the first on the task queue.
+     * This means that this peer can access the shared resource and execute 
+     * an action.
      */
     private void myTurn() throws SocketException, IOException {
-        //ES MI TURNO TENGO QUE EJECUTAR LA ACCION Y MANDO BRODCAST
+        //Execute the action and send broadcast.
         switch (actionFromClient) {
-            case MyValues.MSGRESERVE:
-                //tengo que realizar una reserva
+            case Messages.MSGRESERVE:
                 result = peer.getVehicle().reserve(amount);
                 break;
-            case MyValues.MSGCANCEL:
+            case Messages.MSGCANCEL:
                 result = peer.getVehicle().cancel(amount);
                 break;
         }
         synchronized (LOCK) {
+            //Notify all the locks.
             LOCK.notifyAll();
         }
+        //Once the action is finished, dequeue the task.
         peer.dequeue();
+        //Send a broadcast notifying all the other connected peers that this peer no longer needs access to the shared resource.
         broadcast(MSGRELEASE, peer.getTime(), peer.getPid());
     }
 
-}
+} //End of UDPPeerServer class

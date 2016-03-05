@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Class that represents a thread that listens for the messages passed through the
+ * Telnet port of the peer.
  */
 package proyecto_redes;
 
@@ -16,10 +15,6 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author nico
- */
 public class TelnetPeerServer extends Thread {
 
     private Socket clientSocket;
@@ -32,24 +27,26 @@ public class TelnetPeerServer extends Thread {
     DataOutputStream bufferOut;
 
     TelnetPeerServer(Socket CSoc, Peer peer) throws Exception {
-        clientSocket = CSoc; //creo el socket para el cliente
+        clientSocket = CSoc; //Creates the socket for the Telnet Client
         this.peer = peer;
         System.out.println("Client Connected ...");
         System.out.println("Waiting for UserName And Password");
         bufferIn = new BufferedReader(new InputStreamReader(new DataInputStream(clientSocket.getInputStream())));
-        bufferOut = new DataOutputStream(clientSocket.getOutputStream()); //preparo el socket para la salida
+        bufferOut = new DataOutputStream(clientSocket.getOutputStream()); //Prepares the socket for the Output
         bufferOut.writeChars("Username:\nCentral Prompt> ");
         loginName = bufferIn.readLine();
         bufferOut.writeChars("Password:\nCentral Prompt> ");
         password = bufferIn.readLine();
-        start(); //inicio el thread para leer los comandos de este cliente
+        start(); //Start the thread that reads the commands of the Telnet Client
     }
 
+    @Override
     public void run() {
         try {
             BufferedReader brFin = new BufferedReader(new FileReader("Passwords.txt"));
-            String LoginInfo = "";
+            String LoginInfo;
             boolean allow = false;
+            //Checks the username and password to see if they are allowed.
             while ((LoginInfo = brFin.readLine()) != null) {
                 StringTokenizer st = new StringTokenizer(LoginInfo);
                 if (loginName.equals(st.nextToken()) && password.equals(st.nextToken())) {
@@ -63,6 +60,7 @@ public class TelnetPeerServer extends Thread {
                 bufferOut.writeChars("NOT_ALLOWED\nCentral Prompt> ");
             }
             while (allow) {
+                //Read the commands through the client.
                 command = bufferIn.readLine().toLowerCase();
                 switch (command) {
                     case "reserve":
@@ -103,4 +101,4 @@ public class TelnetPeerServer extends Thread {
         }
     }
 
-}
+} // End of TelnetPeerServer class.
