@@ -1,13 +1,9 @@
-Para compilar el proyecto debe correrse compile.sh
+To compile the project, run compile.sh.
 
-Se autogenerará un archivo ips.txt el cual contiene las ips de las distintas centrales
-el formato de la lineas en este archivo debe ser: IP_CENTRAL UDP_PORT TELNET_PORT
-por ejemplo 192.168.0.11 9000 5000, en cada nueva linea debe ir una central distinta
+A file named 'ips.txt' will autogenerate, this contains the IPs of the centrals (Peers), the format of the lines in this file must be: IP_CENTRAL UDP_PORT TELNET_PORT, for instance: 192.168.0.11 9000 5000. Each new line must be a different central (Peer).
 
-para correr el proyecto debe hacerse java -jar proyecto_redes.jar UDP_PORT TELNET_PORT
-en donde UDP_PORT y TELNET_PORT son los puertos en el cual se quiere escuchar mensajes a través de UDP 
-y TELNET respectivamente.
+To run the project:
+Run in a terminal java -jar proyecto_redes.jar UDP_PORT TELNET_PORT
+Where UDP_PORT and TELNET_PORT are the ports in which this peer wants to listen through UDP and TELNET respectively.
 
-Para conectarse a una central debe hacerse: telnet IP_CENTRAL TELNET_PORT en donde
-IP_CENTRAL es la ip del peer al cual se desea establecer una conexión, y TELNET_PORT
-es el puerto en el cual está oyendo ese peer
+To conect to a central (Peer) as a client open a terminal and run: telnet IP_CENTRAL TELNET_PORT where IP_CENTRAL is the IP of the peer that the client wants to establish connection and TELNET_PORT is the port in which the peer listens to TELNET.
