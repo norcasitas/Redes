@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package telnetexample;
+package proyecto_redes;
 
 public class Vehicle {
 
@@ -35,14 +35,13 @@ public class Vehicle {
     public Vehicle() {
         reserved = 0;
     }
-    
-    public void setSeats(int seats){
-        reserved= seats;
+
+    public void setSeats(int seats) {
+        reserved = seats;
     }
 
     public int getReserved() {
         return reserved;
     }
-    
-    
+
 }

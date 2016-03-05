@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package telnetexample;
+package proyecto_redes;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -15,19 +15,19 @@ import java.util.logging.Logger;
  * @author nico
  */
 public class IPports {
-    
- private InetAddress ip;
- private int portUDP;
- private int portTelnet;
+
+    private InetAddress ip; //ip del peer
+    private int portUDP; //puerto udp donde escucha el peer
+    private int portTelnet; //puerto telnet donde escucha el peer
 
     public IPports(String ip, int portUDP, int portTelnet) {
-     try {
-         this.ip = InetAddress.getByName(ip);
-         this.portUDP = portUDP;
-         this.portTelnet = portTelnet;
-     } catch (UnknownHostException ex) {
-         Logger.getLogger(IPports.class.getName()).log(Level.SEVERE, null, ex);
-     }
+        try {
+            this.ip = InetAddress.getByName(ip);
+            this.portUDP = portUDP;
+            this.portTelnet = portTelnet;
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(IPports.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public InetAddress getIp() {
@@ -53,9 +53,9 @@ public class IPports {
     public void setPortTelnet(int portTelnet) {
         this.portTelnet = portTelnet;
     }
- 
-    public String toString(){
-        return ip.getHostAddress() +"-"+ portUDP +"-"+portTelnet;
+
+    public String toString() {
+        return "ip:" + ip.getHostAddress() + " UDP port:" + portUDP + " TELNET port:" + portTelnet;
     }
-    
+
 }

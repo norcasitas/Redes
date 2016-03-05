@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package telnetexample;
+package proyecto_redes;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -36,7 +36,7 @@ public class TelnetPeerServer extends Thread {
         this.peer = peer;
         System.out.println("Client Connected ...");
         System.out.println("Waiting for UserName And Password");
-        bufferIn=new BufferedReader(new InputStreamReader(new DataInputStream(clientSocket.getInputStream())));
+        bufferIn = new BufferedReader(new InputStreamReader(new DataInputStream(clientSocket.getInputStream())));
         bufferOut = new DataOutputStream(clientSocket.getOutputStream()); //preparo el socket para la salida
         bufferOut.writeChars("Username:\nCentral Prompt> ");
         loginName = bufferIn.readLine();
@@ -66,10 +66,10 @@ public class TelnetPeerServer extends Thread {
                 command = bufferIn.readLine().toLowerCase();
                 switch (command) {
                     case "reserve":
-                        String s= bufferIn.readLine();
+                        String s = bufferIn.readLine();
                         parameter = Integer.valueOf(s);
                         Boolean result = peer.reserve(parameter);
-                        if (result){
+                        if (result) {
                             bufferOut.writeChars(parameter + "tickets reserved\nCentral Prompt> ");
                         } else {
                             bufferOut.writeChars("Error: bad parameter\nCentral Prompt> ");
@@ -77,13 +77,14 @@ public class TelnetPeerServer extends Thread {
                         break;
                     case "available":
                         Integer available = peer.available();
-                        bufferOut.writeChars("Available seats: "+available.toString()+"\nCentral Prompt> ");
+                        System.out.println(available);
+                        bufferOut.writeChars("Available seats: " + available.toString() + "\nCentral Prompt> ");
                         break;
                     case "cancel":
                         parameter = Integer.valueOf(bufferIn.readLine());
                         boolean cancel = peer.cancel(parameter);
                         if (cancel) {
-                            bufferOut.writeChars(parameter+" tickets cancelled\nCentral Prompt> ");
+                            bufferOut.writeChars(parameter + " tickets cancelled\nCentral Prompt> ");
                         } else {
                             bufferOut.writeChars("Error: bad parameter\nCentral Prompt> ");
                         }

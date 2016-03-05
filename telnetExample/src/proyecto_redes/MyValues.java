@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package telnetexample;
+package proyecto_redes;
 
 public final class MyValues {
 
@@ -14,6 +14,6 @@ public final class MyValues {
     public static final int MSGACK = 4;
     public static final int MSGENTER = 5;
     public static final int MSGRELEASE = 6;
-    public static final int MSGNEWCONECTION = 7;
-    public static final int MSGACKNEWCONECTION = 8;
+    public static final int MSGNEWCONECTION = 7; //notificacion de que el peer se ha conectado
+    public static final int MSGACKNEWCONECTION = 8; //respuesta a una notificacion de peer conectado
 }

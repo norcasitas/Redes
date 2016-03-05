@@ -1,2 +1,0 @@
-telnetexample.ejemplo.TelnetServer
-telnetexample.ejemplo.AcceptTelnetClient1

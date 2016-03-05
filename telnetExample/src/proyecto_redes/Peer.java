@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package telnetexample;
+package proyecto_redes;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import static telnetexample.MyValues.*;
+import static proyecto_redes.MyValues.*;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -36,14 +36,18 @@ public class Peer {
         readIpsFromFile();
         queue = new LinkedList();
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in)); //preparo el buffer para leer desde la terminal
-        MYIP.setPortUDP(Integer.valueOf(br.readLine()));
-        MYIP.setPortTelnet(Integer.valueOf(br.readLine()));
         pid = Long.valueOf(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
         time = 0;
         udpPeerServer = new UDPPeerServer(this); //empiezo a escuchar en UDP puerto 9876
         notifyConection();
     }
 
+    /**
+     * Lee las ip de las otras centrales desde un archivo de texto
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     private void readIpsFromFile() throws FileNotFoundException, IOException {
         BufferedReader brFin = new BufferedReader(new FileReader("ips.txt"));
         String ipWithPorts = "";
@@ -53,17 +57,28 @@ public class Peer {
         }
     }
 
+    /**
+     * pone a escuchar el servidor udp
+     *
+     * @throws Exception
+     */
     public void init() throws Exception {
+        System.out.println("listening UDP in port "+ MYIP.getPortUDP());
+        System.out.println("listening TELNET in port "+ MYIP.getPortTelnet());
         udpPeerServer.start();
         runTelnetServer();
     }
 
+    /**
+     * notifica a todas las ips que el peer se ha conectado
+     *
+     * @throws SocketException
+     * @throws IOException
+     */
     private void notifyConection() throws SocketException, IOException {
-        //preparo un string que es por ejemplo 1 12386123 pid donde representa la 
-        //accion, su tiempo, y el pid del proceso
         String sentence = MSGNEWCONECTION + " " + String.valueOf(time) + " " + pid;
         byte[] sendData = sentence.getBytes();
-        //lo envio a cada proceso, no espero respuesta sincronica
+        //lo envio a cada peer, no espero respuesta sincronica
         for (IPports ip : allIps) {
             DatagramSocket clientSocket = new DatagramSocket();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip.getIp(), ip.getPortUDP());
@@ -95,6 +110,13 @@ public class Peer {
         return -1;
     }
 
+    /**
+     * Dada una ip, retorna el objeto IPports que contiene la ip, y sus
+     * respectivos puertos
+     *
+     * @param ip
+     * @return
+     */
     public IPports getIPPortsByIP(InetAddress ip) {
         for (IPports ipPort : allIps) {
             if (ip.getHostAddress().equals(ipPort.getIp().getHostAddress())) {
@@ -152,9 +174,15 @@ public class Peer {
         return pid;
     }
 
+    /**
+     * Inicia el server telnet
+     *
+     * @throws IOException
+     * @throws Exception
+     */
     public void runTelnetServer() throws IOException, Exception {
         ServerSocket Soc = new ServerSocket(MYIP.getPortTelnet());
-        while (true) { // en este while voy recibiendo los clientes
+        while (true) { //voy recibiendo los clientes
             Socket CSoc = Soc.accept();
             TelnetPeerServer ob = new TelnetPeerServer(CSoc, this);
         }
@@ -164,7 +192,7 @@ public class Peer {
      * actualizo el reloj siempre y cuando el parametro de entrada sea mayor a
      * mi tiempo
      *
-     * @param millis
+     * @param newTime
      */
     public void updateTime(int newTime) {
         //si el tiempo que transcurrió desde la ultima sincro es menor al tiempo de entrada,
@@ -200,16 +228,26 @@ public class Peer {
         return vehicle;
     }
 
+    /**
+     * retorna la cantidad de asientos reservados hasta el momento
+     *
+     * @return
+     */
     public int getSeats() {
         return vehicle.getReserved();
     }
 
+    /**
+     * setea la cantidad de asientos reservados
+     *
+     * @param seats
+     */
     public void setSeats(int seats) {
         vehicle.setSeats(seats);
     }
 
     /**
-     * Retorno el tiempo de mi reloj en milisegundos
+     * Retorno el tiempo de mi reloj
      *
      * @return
      */
@@ -236,21 +274,19 @@ public class Peer {
      * @param size
      */
     public void setQueueWithTrash(int size) {
-        //System.out.println("viendo cola antes");
-        for (QueueObject q : queue) {
-            System.out.println(q.toString());
-        }
         queue.clear();
         for (int i = 0; i < size; i++) {
             queue.add(new QueueObject(-1, -1));
         }
-        //System.out.println("viendo cola despues");
-        for (QueueObject q : queue) {
-            System.out.println(q.toString());
-        }
     }
 
     public static void main(String args[]) throws Exception {
+        if (args.length != 2) {
+            System.err.println("the first param is UDP port and the second param is TELNET port ");
+            System.exit(1);
+        }
+        MYIP.setPortUDP(Integer.valueOf(args[0]));
+        MYIP.setPortTelnet(Integer.valueOf(args[1]));
         new Peer().init();
     }
 

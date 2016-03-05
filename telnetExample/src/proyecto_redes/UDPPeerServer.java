@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package telnetexample;
+package proyecto_redes;
 
-import static telnetexample.MyValues.*;
+import static proyecto_redes.MyValues.*;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -60,12 +60,13 @@ public class UDPPeerServer extends Thread {
 
     /**
      * Envia un mensaje con el estado de la cola y bus a un peer en especial
+     *
      * @param action
      * @param time
      * @param pid
      * @param ipDestiny
      * @throws SocketException
-     * @throws IOException 
+     * @throws IOException
      */
     public void sendMessageWithBusState(int action, int time, long pid, IPports ipDestiny) throws SocketException, IOException {
         DatagramSocket clientSocket = new DatagramSocket();
@@ -73,8 +74,8 @@ public class UDPPeerServer extends Thread {
         //accion, su tiempo, y el pid del proceso
         String sentence = action + " " + String.valueOf(time) + " " + pid;
         //le envio el estado del bus y la cantidad de elementos en la cola
-        String busState = peer.getVehicle().getReserved()+" "+peer.getQueue().size();
-        sentence = sentence +" "+ busState;
+        String busState = peer.getVehicle().getReserved() + " " + peer.getQueue().size();
+        sentence = sentence + " " + busState;
         sendData = sentence.getBytes();
         //lo envio a cada proceso, no espero respuesta sincronica
         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ipDestiny.getIp(), peer.getPortByIP(1, ipDestiny.getIp()));
@@ -92,7 +93,6 @@ public class UDPPeerServer extends Thread {
                 serverSocket.receive(receivePacket);
                 String sentence = new String(receivePacket.getData());
                 byte[] data = receivePacket.getData();
-                //System.out.println("RECEIVED in thread udppeerserver: " + sentence);
                 int size = 0;
                 while (size < data.length) {//obtengo el tamaño del mensaje, eliminando la basura
                     if (data[size] == 0) {
@@ -104,7 +104,7 @@ public class UDPPeerServer extends Thread {
                 String str[] = new String(data, 0, size).split(" ");
                 //hago un split para obtener la accion a realizar
                 int action = Integer.valueOf(str[0]);
-                //encolo en la cola, un objeto que contiene el timestamp y el pid del proceso del peer que lo envio
+                //encolo en la cola, un objeto que contiene el tiempo y el pid del proceso del peer que lo envio
                 int time = Integer.valueOf(str[1]);
                 long pid = Long.valueOf(str[2]);
                 QueueObject qb = new QueueObject(time, pid);
@@ -138,8 +138,7 @@ public class UDPPeerServer extends Thread {
                         break;
                     case MSGNEWCONECTION:
                         peer.addIP(peer.getIPPortsByIP(receivePacket.getAddress()));
-                        sendMessageWithBusState(MSGACKNEWCONECTION, peer.getTime(), peer.getPid(),peer.getIPPortsByIP(receivePacket.getAddress()));
-                        //aca faltaría notificar como está el colectivo y como está la cola
+                        sendMessageWithBusState(MSGACKNEWCONECTION, peer.getTime(), peer.getPid(), peer.getIPPortsByIP(receivePacket.getAddress()));
                         break;
                     case MSGACKNEWCONECTION:
                         peer.addIP(peer.getIPPortsByIP(receivePacket.getAddress()));
@@ -161,9 +160,9 @@ public class UDPPeerServer extends Thread {
         QueueObject qb = new QueueObject(time, peer.getPid());
         peer.enqueue(qb);
         //si no hay otros peer conectados, no espero los akcs ni hago broadcast
-        if(peer.getIps().isEmpty())
+        if (peer.getIps().isEmpty()) {
             myTurn();
-        else{
+        } else {
             //notifico a todos que quiero usar el recurso compartido
             broadcast(MSGENTER, time, peer.getPid());
             lock();
@@ -180,9 +179,9 @@ public class UDPPeerServer extends Thread {
         QueueObject qb = new QueueObject(time, peer.getPid());
         peer.enqueue(qb);
         //si no hay otros peer conectados, no espero los akcs ni hago broadcast
-        if(peer.getIps().isEmpty())
+        if (peer.getIps().isEmpty()) {
             myTurn();
-        else{
+        } else {
             //notifico a todos que quiero usar el recurso compartido
             broadcast(MSGENTER, time, peer.getPid());
             lock();
@@ -212,8 +211,7 @@ public class UDPPeerServer extends Thread {
      * Metodo que se ejecuta cuando me toca a mi utilizar el area critica
      */
     private void myTurn() throws SocketException, IOException {
-        //ES MI TURNO TENGO QUE EJECUTAR LA ACCION (falta) Y MANDO BRODCAST
-        System.out.println("my turn");
+        //ES MI TURNO TENGO QUE EJECUTAR LA ACCION Y MANDO BRODCAST
         switch (actionFromClient) {
             case MyValues.MSGRESERVE:
                 //tengo que realizar una reserva
