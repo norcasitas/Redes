@@ -26,7 +26,14 @@ public class TelnetPeerServer extends Thread {
     private BufferedReader bufferIn;
     DataOutputStream bufferOut;
 
-    TelnetPeerServer(Socket CSoc, Peer peer) throws Exception {
+    /**
+     * Constructor: Receives a socket and the Peer that creates the thread.
+     *
+     * @param CSoc The socket for the client.
+     * @param peer The peer that creates the thread.
+     * @throws Exception
+     */
+    public TelnetPeerServer(Socket CSoc, Peer peer) throws Exception {
         clientSocket = CSoc; //Creates the socket for the Telnet Client
         this.peer = peer;
         System.out.println("Client Connected ...");

@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.StringTokenizer;
 
 public class Peer {
+
     private static final IPPorts MYIP = new IPPorts("127.0.0.1", 9876, 5217); //IPPorts object with the local IP and the UDP and Telnet ports 
 
     private LinkedList<IPPorts> connectedIPs = new LinkedList<>(); //Linked list that stores the IP addresses of other connected peers except this one
@@ -30,9 +31,11 @@ public class Peer {
     private LinkedList<IPPorts> peersIPs = new LinkedList<>(); //Linked list that stores the IP addresses of all the peers except this one
 
     /**
-     * Constructor: Creates a new Vehicle object to represent the shared resource, loads all the IP's of other peers
-     * initializes the priority queue, sets the id of the peer, the time with 0, starts the UDP thread 
+     * Constructor: Creates a new Vehicle object to represent the shared
+     * resource, loads all the IP's of other peers initializes the priority
+     * queue, sets the id of the peer, the time with 0, starts the UDP thread
      * and notifies other peers about the connection.
+     *
      * @throws SocketException
      * @throws IOException
      */
@@ -48,6 +51,7 @@ public class Peer {
 
     /**
      * Reads the IPs of other peers from a text file
+     *
      * @throws FileNotFoundException
      * @throws IOException
      */
@@ -62,6 +66,7 @@ public class Peer {
 
     /**
      * Starts the listening UDP server
+     *
      * @throws Exception
      */
     public void init() throws Exception {
@@ -72,7 +77,7 @@ public class Peer {
     }
 
     /**
-     * Notifies all the other IPs that this peer has connected.    
+     * Notifies all the other IPs that this peer has connected.
      *
      * @throws SocketException
      * @throws IOException
@@ -91,8 +96,8 @@ public class Peer {
     }
 
     /**
-     * Returns a specific port of the given IP.
-     * If the IP does not exist, this returns -1.
+     * Returns a specific port of the given IP. If the IP does not exist, this
+     * returns -1.
      *
      * @param type of the port to return. 1 for UDP, 2 for Telnet
      * @param ip of which the port must be taken
@@ -113,7 +118,8 @@ public class Peer {
     }
 
     /**
-     * Given an IP, returns an IPPorts that contains the IP and respective ports.
+     * Given an IP, returns an IPPorts that contains the IP and respective
+     * ports.
      *
      * @param ip The IP that must be retrieved.
      * @return An IPPorts object with the IP and respective ports.
@@ -128,9 +134,11 @@ public class Peer {
     }
 
     /**
-     * Enqueues the given task of a peer in the correct position of the priority queue of tasks.
-     * The criteria for the queue is to set the tasks with lower time first, in case of a tie between two tasks,
-     * the one with lower pid goes first.
+     * Enqueues the given task of a peer in the correct position of the priority
+     * queue of tasks. The criteria for the queue is to set the tasks with lower
+     * time first, in case of a tie between two tasks, the one with lower pid
+     * goes first.
+     *
      * @param qb QueueObject containing the task to be enqueued.
      */
     public void enqueue(QueueObject qb) {
@@ -147,8 +155,11 @@ public class Peer {
     }
 
     /**
-     * Returns the first pid in the task queue, in case of an empty queue, returns -1.
-     * @return the pid of the first task in the queue if it is not empty. Otherwise, returns -1.
+     * Returns the first pid in the task queue, in case of an empty queue,
+     * returns -1.
+     *
+     * @return the pid of the first task in the queue if it is not empty.
+     * Otherwise, returns -1.
      */
     public long getFirstPid() {
         return queue.size() > 0 ? queue.getFirst().getPid() : -1;
@@ -157,7 +168,8 @@ public class Peer {
     /**
      * Dequeue the first task of the priority queue of tasks.
      *
-     * @return the QueueObject representing the first task in the priority queue.
+     * @return the QueueObject representing the first task in the priority
+     * queue.
      */
     public QueueObject dequeue() {
 
@@ -199,10 +211,10 @@ public class Peer {
     }
 
     /**
-     * Transfiero la data que entra por telnet a udp
+     * Transfers the call of reserve from Telnet to UDP.
      *
-     * @param amount
-     * @return
+     * @param amount The amount of seats to reserve
+     * @return True if the reserve was successful, false otherwise.
      * @throws java.io.IOException
      */
     public boolean reserve(int amount) throws IOException {
@@ -210,19 +222,35 @@ public class Peer {
         return udpPeerServer.reserve(amount);
     }
 
+    /**
+     * Transfers the call of available from Telnet to UDP.
+     *
+     * @return The amount of available seats in the vehicle.
+     * @throws IOException
+     */
     public int available() throws IOException {
         time++;
         return vehicle.available();
     }
 
+    /**
+     * Transfers the call of cancel from Telnet to UDP.
+     *
+     * @param amount The amount of reserves to cancel.
+     * @return True if the cancellation was successful, false otherwise.
+     * @throws IOException
+     */
     public boolean cancel(int amount) throws IOException {
         time++;
         return udpPeerServer.cancel(amount);
     }
 
     /**
-     * Returns the current state of the shared resource, represented by a Vehicle object.
-     * @return The Vehicle object that represents the current state of the shared resource.
+     * Returns the current state of the shared resource, represented by a
+     * Vehicle object.
+     *
+     * @return The Vehicle object that represents the current state of the
+     * shared resource.
      */
     public Vehicle getVehicle() {
         return vehicle;
@@ -257,7 +285,7 @@ public class Peer {
 
     /**
      * Returns the list of all the connected IPs at the moment
-     * 
+     *
      * @return List of all the connected IPs
      */
     public LinkedList<IPPorts> getIps() {
@@ -266,6 +294,7 @@ public class Peer {
 
     /**
      * Adds the given IP to the connectedIPs list
+     *
      * @param ip The IP that connected
      */
     public void addIP(IPPorts ip) {
@@ -273,7 +302,9 @@ public class Peer {
     }
 
     /**
-     * Returns the priority queue of QueueObject representing the tasks at the moment.
+     * Returns the priority queue of QueueObject representing the tasks at the
+     * moment.
+     *
      * @return The priority queue with the tasks.
      */
     public LinkedList<QueueObject> getQueue() {
@@ -281,7 +312,8 @@ public class Peer {
     }
 
     /**
-     * Set the queue with trash to simulate the existance of objects before this peer task.
+     * Set the queue with trash to simulate the existance of objects before this
+     * peer task.
      *
      * @param size The amount of trash objects to add to the queue.
      */
@@ -294,6 +326,7 @@ public class Peer {
 
     /**
      * Init the peer with the given ports.
+     *
      * @param args first argument is the UDP port, the second the Telnet port
      * @throws Exception
      */
@@ -308,7 +341,7 @@ public class Peer {
     }
 
     /**
-     * @return the IP and PORTS of the peer in a IPPort object 
+     * @return the IP and PORTS of the peer in a IPPort object
      */
     public static IPPorts getMYIP() {
         return MYIP;

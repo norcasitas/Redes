@@ -21,6 +21,7 @@ public class QueueObject {
 
     /**
      * Returns the time of the task
+     *
      * @return The time of the task
      */
     public int getTime() {
@@ -29,6 +30,7 @@ public class QueueObject {
 
     /**
      * Returns the pid of the process that created the task.
+     *
      * @return The pid of the process that created the task.
      */
     public long getPid() {

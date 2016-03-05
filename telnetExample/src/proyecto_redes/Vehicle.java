@@ -11,10 +11,11 @@ public class Vehicle {
 
     /**
      * Reserves a given amount of seats.
+     *
      * @param seats THe amount of seats to reserve.
-     * @return True if the amount of seats to reserve is greater or equal than zero and the 
-     * amount of available seats is greater or equal than the amount of seats to reserve.
-     * Return false otherwise.
+     * @return True if the amount of seats to reserve is greater or equal than
+     * zero and the amount of available seats is greater or equal than the
+     * amount of seats to reserve. Return false otherwise.
      */
     public boolean reserve(int seats) {
         if (seats >= 0 && SEATS - reserved >= seats) {
@@ -27,10 +28,11 @@ public class Vehicle {
 
     /**
      * Cancels a given amount of reserved seats.
+     *
      * @param seats The amount of reserves to cancel.
-     * @return True if the amount of reserves to cancel is greater or equal than zero and the 
-     * amount of reserved seats is greater or equeal than the amount of reserves to cancel. 
-     * Otherwise return false.
+     * @return True if the amount of reserves to cancel is greater or equal than
+     * zero and the amount of reserved seats is greater or equeal than the
+     * amount of reserves to cancel. Otherwise return false.
      */
     public boolean cancel(int seats) {
         if (seats >= 0 && reserved - seats >= 0) {
@@ -42,8 +44,9 @@ public class Vehicle {
     }
 
     /**
-     * Returns the available seats.
-     * The available seats are those that are not reserved.
+     * Returns the available seats. The available seats are those that are not
+     * reserved.
+     *
      * @return The amount of available seats.
      */
     public int available() {
@@ -59,6 +62,7 @@ public class Vehicle {
 
     /**
      * Sets the reserved seats of the vehicle.
+     *
      * @param seats The amount of reserved seats.
      */
     public void setReservedSeats(int seats) {
@@ -67,6 +71,7 @@ public class Vehicle {
 
     /**
      * Returns the reserved seats of the vehicle.
+     *
      * @return The reserved seats of the vehicle.
      */
     public int getReservedSeats() {

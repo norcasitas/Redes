@@ -15,8 +15,9 @@ public class IPPorts {
     private int portTelnet; //Telnet port where the peer listens
 
     /**
-     * Constructor for IPPorts class
-     * Requires a specified IP address, UDP Port and Telnet Port
+     * Constructor for IPPorts class Requires a specified IP address, UDP Port
+     * and Telnet Port
+     *
      * @param ip IP address of the peer
      * @param portUDP UDP port of the peer
      * @param portTelnet Telnet port of the peer
@@ -32,7 +33,8 @@ public class IPPorts {
     }
 
     /**
-     *Getter for the IP address of the peer
+     * Getter for the IP address of the peer
+     *
      * @return the IP address of the peer
      */
     public InetAddress getIp() {
@@ -41,6 +43,7 @@ public class IPPorts {
 
     /**
      * Setter for the IP of the peer
+     *
      * @param ip new peer IP address
      */
     public void setIp(InetAddress ip) {
@@ -49,6 +52,7 @@ public class IPPorts {
 
     /**
      * Getter for the UDP port of the peer
+     *
      * @return the UDP port of the peer
      */
     public int getPortUDP() {
@@ -57,6 +61,7 @@ public class IPPorts {
 
     /**
      * Setter for the UDP port of the peer
+     *
      * @param portUDP new peer UDP port
      */
     public void setPortUDP(int portUDP) {
@@ -65,6 +70,7 @@ public class IPPorts {
 
     /**
      * Getter for the Telnet port of the peer
+     *
      * @return the telnet port of the peer
      */
     public int getPortTelnet() {
@@ -73,6 +79,7 @@ public class IPPorts {
 
     /**
      * Setter for the Telnet port of the peer
+     *
      * @param portTelnet new port of the peer
      */
     public void setPortTelnet(int portTelnet) {

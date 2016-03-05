@@ -4,6 +4,7 @@
 package proyecto_redes;
 
 public final class Messages {
+
     public static final int MSGAVAILABLE = 1; //Check available seats
     public static final int MSGRESERVE = 2; //Reserve an amount of seats
     public static final int MSGCANCEL = 3; //Cancel an amount of seats

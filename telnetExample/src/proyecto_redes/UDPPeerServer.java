@@ -59,8 +59,8 @@ public class UDPPeerServer extends Thread {
     }
 
     /**
-     * Sends a message with the state of the priority queue of tasks and the shared resource to a 
-     * specific peer.
+     * Sends a message with the state of the priority queue of tasks and the
+     * shared resource to a specific peer.
      *
      * @param action The action that this peer wants to do.
      * @param time The time of this peer.
@@ -136,10 +136,10 @@ public class UDPPeerServer extends Thread {
                         peer.addIP(peer.getIPPortsByIP(receivePacket.getAddress()));
                         sendMessageWithBusState(MSGACKNEWCONECTION, peer.getTime(), peer.getPid(), peer.getIPPortsByIP(receivePacket.getAddress()));
                         break;
-                    case MSGACKNEWCONECTION: 
+                    case MSGACKNEWCONECTION:
                         /*When other peer acknowledges this peer connection, add it to the connected IPs, set the current status
-                        * of the shared resources and fill the queue with trash tasks.
-                        */
+                         * of the shared resources and fill the queue with trash tasks.
+                         */
                         peer.addIP(peer.getIPPortsByIP(receivePacket.getAddress()));
                         peer.getVehicle().setReservedSeats(Integer.valueOf(str[3]));
                         peer.setQueueWithTrash(Integer.valueOf(str[4]));
@@ -154,6 +154,7 @@ public class UDPPeerServer extends Thread {
 
     /**
      * Reserves the specified amount of seats.
+     *
      * @param amount The amount of seats to reserve.
      * @return True if the seats were reserved, false otherwise.
      * @throws SocketException
@@ -180,6 +181,7 @@ public class UDPPeerServer extends Thread {
 
     /**
      * Cancel the specified amount of reserved seats.
+     *
      * @param amount The amount of reserved seats to cancel.
      * @return True if the reserves were cancelled, false otherwise.
      * @throws SocketException
@@ -222,8 +224,8 @@ public class UDPPeerServer extends Thread {
 
     /**
      * Method that is executed when this peer is the first on the task queue.
-     * This means that this peer can access the shared resource and execute 
-     * an action.
+     * This means that this peer can access the shared resource and execute an
+     * action.
      */
     private void myTurn() throws SocketException, IOException {
         //Execute the action and send broadcast.
