@@ -18,12 +18,18 @@ public class Vehicle {
      * amount of seats to reserve. Return false otherwise.
      */
     public boolean reserve(int seats) {
+        System.out.println("RM Reserve parameter: " + seats);
+        System.out.println("RM Reserved seats before reserve: " + reserved);
         if (seats >= 0 && SEATS - reserved >= seats) {
+            System.out.println("RM Reserve parameter after if: " + seats);
+            System.out.println("RM Reserved seats after if nm: " + reserved);
+            System.out.println("RM SEATS in reserve: " + SEATS);
             reserved += seats;
+            System.out.println("RM Reserved seats after if wm: " + reserved);
             return true;
-        } else {
-            return false;
         }
+        return false;
+
     }
 
     /**
@@ -35,12 +41,17 @@ public class Vehicle {
      * amount of reserves to cancel. Otherwise return false.
      */
     public boolean cancel(int seats) {
+        System.out.println("CM Cancel parameter: " + seats);
+        System.out.println("CM Reserved seats before cancel: " + reserved);
         if (seats >= 0 && reserved - seats >= 0) {
+            System.out.println("CM Cancel parameter after if: " + seats);
+            System.out.println("CM Reserved seats after if nm: " + reserved);
+            System.out.println("CM SEATS in cancel: " + SEATS);
             reserved -= seats;
+            System.out.println("CM Reserved seats after if wm: " + reserved);
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**

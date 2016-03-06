@@ -75,7 +75,7 @@ public class TelnetPeerServer extends Thread {
                         parameter = Integer.valueOf(s);
                         Boolean result = peer.reserve(parameter);
                         if (result) {
-                            bufferOut.writeChars(parameter + "tickets reserved\nCentral Prompt> ");
+                            bufferOut.writeChars(parameter + " tickets reserved\nCentral Prompt> ");
                         } else {
                             bufferOut.writeChars("Error: bad parameter\nCentral Prompt> ");
                         }
