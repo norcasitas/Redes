@@ -26,7 +26,7 @@ public class Peer {
     private Vehicle vehicle; //Representation of the actual state of the shared resource
     private LinkedList<QueueObject> queue;//Priority queue with all the requests
     private int time; //Amount of time that the peer has been online
-    private long pid; //Process id of the peer
+    private int pid; //Process id of the peer
     private UDPPeerServer udpPeerServer; //Class that manages the UDP commands
     private LinkedList<IPPorts> peersIPs = new LinkedList<>(); //Linked list that stores the IP addresses of all the peers except this one
 
@@ -43,7 +43,7 @@ public class Peer {
         vehicle = new Vehicle();
         readIpsFromFile();
         queue = new LinkedList();
-        pid = Long.valueOf(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]); //Obtains the peer id through the process id
+        pid = Integer.valueOf(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]); //Obtains the peer id through the process id
         time = 0;
         udpPeerServer = new UDPPeerServer(this); //Starts to listen through UDP 9876 port
         notifyConection();
@@ -161,7 +161,7 @@ public class Peer {
      * @return the pid of the first task in the queue if it is not empty.
      * Otherwise, returns -1.
      */
-    public long getFirstPid() {
+    public int getFirstPid() {
         return queue.size() > 0 ? queue.getFirst().getPid() : -1;
     }
 
@@ -181,7 +181,7 @@ public class Peer {
      *
      * @return the process id of the peer.
      */
-    public long getPid() {
+    public int getPid() {
         return pid;
     }
 

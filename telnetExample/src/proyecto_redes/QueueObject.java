@@ -6,7 +6,7 @@ package proyecto_redes;
 public class QueueObject {
 
     private final int time;
-    private final long pid;
+    private final int pid;
 
     /**
      * Constuctor: Receives the time and process id.
@@ -14,7 +14,7 @@ public class QueueObject {
      * @param time The time of the peer.
      * @param pid The process id of the peer that creates the object.
      */
-    public QueueObject(int time, long pid) {
+    public QueueObject(int time, int pid) {
         this.time = time;
         this.pid = pid;
     }
@@ -33,7 +33,7 @@ public class QueueObject {
      *
      * @return The pid of the process that created the task.
      */
-    public long getPid() {
+    public int getPid() {
         return pid;
     }
 

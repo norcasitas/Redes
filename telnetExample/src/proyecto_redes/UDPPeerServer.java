@@ -42,7 +42,7 @@ public class UDPPeerServer extends Thread {
      * @throws SocketException
      * @throws IOException
      */
-    public void broadcast(int action, int time, long pid) throws UnknownHostException, SocketException, IOException {
+    public void broadcast(int action, int time, int pid) throws UnknownHostException, SocketException, IOException {
         String sentence = action + " " + String.valueOf(time) + " " + pid; //Creates a sentence with the action, the time of the peer and the peer id.
         if (MSGRELEASE == action) {
             sentence += " " + peer.getReservedSeats(); //If the peer wants to release the resource, concatenate the current state of it.
@@ -70,7 +70,7 @@ public class UDPPeerServer extends Thread {
      * @throws SocketException
      * @throws IOException
      */
-    public void sendMessageWithBusState(int action, int time, long pid, IPPorts ipDestiny) throws SocketException, IOException {
+    public void sendMessageWithBusState(int action, int time, int pid, IPPorts ipDestiny) throws SocketException, IOException {
         DatagramSocket clientSocket = new DatagramSocket();
         String sentence = action + " " + String.valueOf(time) + " " + pid;
         String busState = peer.getVehicle().getReservedSeats() + " " + peer.getQueue().size(); //Creates a string with the current state of the vehicle and the size of the priority queue.
@@ -91,14 +91,16 @@ public class UDPPeerServer extends Thread {
                 DatagramSocket clientSocket = new DatagramSocket();
                 serverSocket.receive(receivePacket);
                 byte[] data = receivePacket.getData();
-                String aux =new String(data);
+                String aux =new String("+++"+data);
+                System.out.println(aux);
                 aux =  aux.split("//")[0];
+                System.out.println("..."+aux);
                 // Specify the appropriate encoding as the last argument
                 // Split the received message to obtain all the relevant data.
                 String str[] = aux.split(" ");
                 int action = Integer.valueOf(str[0]);
                 int time = Integer.valueOf(str[1]);
-                long pid = Long.valueOf(str[2]);
+                int pid = Integer.valueOf(str[2]);
                 // Create a QueueObject that represents a new task, it contains the time and the process id of the peer.
                 QueueObject qb = new QueueObject(time, pid);
                 peer.updateTime(time); //Updates the time.
