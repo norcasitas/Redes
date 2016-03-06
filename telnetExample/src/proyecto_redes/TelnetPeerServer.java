@@ -82,7 +82,6 @@ public class TelnetPeerServer extends Thread {
                         break;
                     case "available":
                         Integer available = peer.available();
-                        System.out.println(available);
                         bufferOut.writeChars("Available seats: " + available.toString() + "\nCentral Prompt> ");
                         break;
                     case "cancel":

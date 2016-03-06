@@ -92,9 +92,7 @@ public class UDPPeerServer extends Thread {
                 serverSocket.receive(receivePacket);
                 byte[] data = receivePacket.getData();
                 String aux =new String(data);
-                System.out.println("+++"+aux);
                 aux =  aux.split("s")[0];
-                System.out.println("..."+aux);
                 // Specify the appropriate encoding as the last argument
                 // Split the received message to obtain all the relevant data.
                 String str[] = aux.split(" ");
