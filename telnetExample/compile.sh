@@ -9,7 +9,7 @@ cd class
 jar cmf manifest.mf ../proyecto_redes.jar proyecto_redes/*.class
 cd ..
 rm -R class
-echo "192.168.0.111 9000 5000" > ips.txt
+echo "192.168.0.111 9876 5217" > ips.txt
 echo "user pass" > Passwords.txt
 echo "COMPILACION TERMINADA, CORRA: java -jar proyecto_redes.jar UDP_PORT TELNET_PORT"     
 exit

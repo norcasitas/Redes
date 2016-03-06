@@ -3,6 +3,7 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+<<<<<<< Updated upstream
             <file>file:/home/joako/Documentos/Redes/Redes/telnetExample/src/proyecto_redes/QueueObject.java</file>
             <file>file:/home/joako/Documentos/Redes/Redes/telnetExample/src/proyecto_redes/UDPPeerServer.java</file>
             <file>file:/home/joako/Documentos/Redes/Redes/telnetExample/src/proyecto_redes/IPPorts.java</file>
@@ -10,6 +11,12 @@
             <file>file:/home/joako/Documentos/Redes/Redes/telnetExample/src/proyecto_redes/TelnetPeerServer.java</file>
             <file>file:/home/joako/Documentos/Redes/Redes/telnetExample/src/proyecto_redes/Messages.java</file>
             <file>file:/home/joako/Documentos/Redes/Redes/telnetExample/src/proyecto_redes/Vehicle.java</file>
+=======
+            <file>file:/home/nico/Universidad/Quinto%20año/Redes%20y%20telecomunicaciones/Redes/telnetExample/src/proyecto_redes/TelnetPeerServer.java</file>
+            <file>file:/home/nico/Universidad/Quinto%20año/Redes%20y%20telecomunicaciones/Redes/telnetExample/src/proyecto_redes/Vehicle.java</file>
+            <file>file:/home/nico/Universidad/Quinto%20año/Redes%20y%20telecomunicaciones/Redes/telnetExample/src/proyecto_redes/UDPPeerServer.java</file>
+            <file>file:/home/nico/Universidad/Quinto%20año/Redes%20y%20telecomunicaciones/Redes/telnetExample/src/proyecto_redes/Peer.java</file>
+>>>>>>> Stashed changes
         </group>
     </open-files>
 </project-private>
