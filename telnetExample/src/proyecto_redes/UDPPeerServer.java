@@ -45,7 +45,7 @@ public class UDPPeerServer extends Thread {
         if (MSGRELEASE == action) {
             sentence += " " + peer.getReservedSeats(); //If the peer wants to release the resource, concatenate the current state of it.
         }
-        sentence += "m";
+        sentence += "s";
         sendData = sentence.getBytes();
         //Sends it to every connected peer, does not wait for a synchronic response
         for (IPPorts ip : peer.getIps()) {
@@ -87,7 +87,6 @@ public class UDPPeerServer extends Thread {
             try {
                 //Listens to the messages that comes through the UDP port.
                 byte[] receiveData = new byte[512];
-                byte[] sendData = new byte[512];
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
                 DatagramSocket clientSocket = new DatagramSocket();
                 serverSocket.receive(receivePacket);
@@ -117,7 +116,7 @@ public class UDPPeerServer extends Thread {
                         peer.enqueue(qb);
                         //Synchronizes if necessary the time.
                         String ds = MSGACK + " " + String.valueOf(peer.getTime()) + " " + peer.getPid()+"s";
-                        sendData = ds.getBytes();
+                        byte[] sendData = ds.getBytes();
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), peer.getPortByIP(1, receivePacket.getAddress()));
                         clientSocket.send(sendPacket); //Send a response with an ACK.
                         break;
