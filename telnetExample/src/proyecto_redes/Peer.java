@@ -83,7 +83,7 @@ public class Peer {
      * @throws IOException
      */
     private void notifyConection() throws SocketException, IOException {
-        String sentence = MSGNEWCONECTION + " " + String.valueOf(time) + " " + pid;
+        String sentence = MSGNEWCONECTION + " " + String.valueOf(time) + " " + pid +"//";
         byte[] sendData = sentence.getBytes();
         //Sends a message to every peer connected, notifying this new connection
         for (IPPorts ip : peersIPs) {
