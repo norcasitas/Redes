@@ -47,6 +47,7 @@ public class UDPPeerServer extends Thread {
         if (MSGRELEASE == action) {
             sentence += " " + peer.getReservedSeats(); //If the peer wants to release the resource, concatenate the current state of it.
         }
+        sentence += "//";
         sendData = sentence.getBytes();
         //Sends it to every connected peer, does not wait for a synchronic response
         for (IPPorts ip : peer.getIps()) {
@@ -73,7 +74,7 @@ public class UDPPeerServer extends Thread {
         DatagramSocket clientSocket = new DatagramSocket();
         String sentence = action + " " + String.valueOf(time) + " " + pid;
         String busState = peer.getVehicle().getReservedSeats() + " " + peer.getQueue().size(); //Creates a string with the current state of the vehicle and the size of the priority queue.
-        sentence = sentence + " " + busState;
+        sentence = sentence + " " + busState +"//";
         sendData = sentence.getBytes();
         //Sends it to every connected peer, does not wait for a synchronic response
         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ipDestiny.getIp(), peer.getPortByIP(1, ipDestiny.getIp()));
@@ -90,16 +91,11 @@ public class UDPPeerServer extends Thread {
                 DatagramSocket clientSocket = new DatagramSocket();
                 serverSocket.receive(receivePacket);
                 byte[] data = receivePacket.getData();
-                int size = 0;
-                while (size < data.length) {//Obtain the size of the message and discards the trash.
-                    if (data[size] == 0) {
-                        break;
-                    }
-                    size++;
-                }
+                String aux =new String(data);
+                aux =  aux.split("//")[0];
                 // Specify the appropriate encoding as the last argument
                 // Split the received message to obtain all the relevant data.
-                String str[] = new String(data, 0, size).split(" ");
+                String str[] = aux.split(" ");
                 int action = Integer.valueOf(str[0]);
                 int time = Integer.valueOf(str[1]);
                 long pid = Long.valueOf(str[2]);
@@ -117,7 +113,7 @@ public class UDPPeerServer extends Thread {
                     case MSGENTER:
                         peer.enqueue(qb);
                         //Synchronizes if necessary the time.
-                        String ds = MSGACK + " " + String.valueOf(peer.getTime()) + " " + peer.getPid();
+                        String ds = MSGACK + " " + String.valueOf(peer.getTime()) + " " + peer.getPid()+"//";
                         sendData = ds.getBytes();
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), peer.getPortByIP(1, receivePacket.getAddress()));
                         clientSocket.send(sendPacket); //Send a response with an ACK.
