@@ -64,19 +64,26 @@ public class TelnetPeerServer extends Thread {
             }
             brFin.close();
             if (allow == false) {
-                bufferOut.writeChars("NOT_ALLOWED\nCentral Prompt> ");
+                bufferOut.writeChars("NOT_ALLOWED\n ");
+                clientSocket.close();
             }
             while (allow) {
                 //Read the commands through the client.
                 command = bufferIn.readLine().toLowerCase();
                 switch (command) {
                     case "reserve":
-                        String s = bufferIn.readLine();
-                        parameter = Integer.valueOf(s);
-                        Boolean result = peer.reserve(parameter);
-                        if (result) {
-                            bufferOut.writeChars(parameter + " tickets reserved\nCentral Prompt> ");
-                        } else {
+                        try {
+                            boolean result = false;
+                            parameter = Integer.valueOf(bufferIn.readLine());
+                            if (parameter > 0) {
+                                result = peer.reserve(parameter);
+                            }
+                            if (result) {
+                                bufferOut.writeChars(parameter + " tickets reserved\nCentral Prompt> ");
+                            } else {
+                                bufferOut.writeChars("Error: Couldn't reserve.\nCentral Prompt> ");
+                            }
+                        } catch (NumberFormatException ex) {
                             bufferOut.writeChars("Error: bad parameter\nCentral Prompt> ");
                         }
                         break;
@@ -85,11 +92,18 @@ public class TelnetPeerServer extends Thread {
                         bufferOut.writeChars("Available seats: " + available.toString() + "\nCentral Prompt> ");
                         break;
                     case "cancel":
-                        parameter = Integer.valueOf(bufferIn.readLine());
-                        boolean cancel = peer.cancel(parameter);
-                        if (cancel) {
-                            bufferOut.writeChars(parameter + " tickets cancelled\nCentral Prompt> ");
-                        } else {
+                        try {
+                            parameter = Integer.valueOf(bufferIn.readLine());
+                            boolean cancel = false;
+                            if (parameter > 0) {
+                                peer.cancel(parameter);
+                            }
+                            if (cancel) {
+                                bufferOut.writeChars(parameter + " tickets cancelled\nCentral Prompt> ");
+                            } else {
+                                bufferOut.writeChars("Error: Couldn't cancel.\nCentral Prompt> ");
+                            }
+                        } catch (NumberFormatException ex) {
                             bufferOut.writeChars("Error: bad parameter\nCentral Prompt> ");
                         }
                         break;
