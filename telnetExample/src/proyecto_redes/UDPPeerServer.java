@@ -91,8 +91,8 @@ public class UDPPeerServer extends Thread {
                 DatagramSocket clientSocket = new DatagramSocket();
                 serverSocket.receive(receivePacket);
                 byte[] data = receivePacket.getData();
-                String aux =new String("+++"+data);
-                System.out.println(aux);
+                String aux =new String(data);
+                System.out.println("+++"+aux);
                 aux =  aux.split("//")[0];
                 System.out.println("..."+aux);
                 // Specify the appropriate encoding as the last argument
